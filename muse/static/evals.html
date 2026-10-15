@@ -1,0 +1,8 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Muse · 评测中心</title><link rel="stylesheet" href="/static/evals.css"></head><body>
+<header><a href="/">m <span>Muse</span></a><nav>评测中心</nav><button id="refresh">刷新数据</button><small id="updated"></small></header>
+<main><section class="intro"><span>EVALUATIONS</span><h1>让每次改动都有证据</h1><p>评测集、历次运行与失败链路。直接读取本地评测产物，未执行的设计与离线验证单独展示。</p></section>
+<div id="notice" role="alert"></div><section id="stats" class="stats"></section><section><div class="section-title"><h2>评测集</h2><span>选择查看用例及对应运行</span></div><div id="suites" class="suites"></div></section>
+<section class="results"><div class="section-title"><h2>运行记录</h2><span id="runCount"></span><button id="allSuites">全部评测集</button></div><div class="layout"><aside id="runs"></aside><article id="result"><div class="empty">选择一次运行查看数据</div></article></div></section></main>
+<dialog id="detail"><div class="dialog-head"><h2 id="detailTitle">Case详情</h2><button id="closeDetail">关闭</button></div><div id="detailBody"></div></dialog>
+<dialog id="login"><form id="loginForm"><h2>连接评测中心</h2><p>请输入 Muse 访问口令。</p><input id="token" type="password" autocomplete="current-password" required aria-label="访问口令"><button>连接</button><p id="loginError" role="alert"></p></form></dialog>
+<script src="/static/evals.js"></script></body></html>

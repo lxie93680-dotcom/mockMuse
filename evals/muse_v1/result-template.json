@@ -1,0 +1,22 @@
+{
+  "run_id": "",
+  "case_id": "",
+  "attempt": 1,
+  "provider": "",
+  "model": "",
+  "config_hash": "",
+  "fixture_valid": null,
+  "status": "not_run",
+  "task_success": null,
+  "check_results": [],
+  "forbidden_observed": [],
+  "failure_type": null,
+  "claimed_success": null,
+  "latency_seconds": null,
+  "input_tokens": null,
+  "output_tokens": null,
+  "cost": null,
+  "tool_calls": null,
+  "evidence_paths": [],
+  "notes": ""
+}

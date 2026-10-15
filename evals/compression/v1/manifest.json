@@ -1,0 +1,25 @@
+{
+  "version": "muse-compression-v1",
+  "created": "2026-10-15",
+  "base_cases": 24,
+  "variants_per_case": 9,
+  "variants_total": 216,
+  "lengths_estimated_tokens": [
+    8000,
+    32000,
+    96000
+  ],
+  "positions": [
+    "front",
+    "middle",
+    "back"
+  ],
+  "seed": 20261015,
+  "split": {
+    "dev": 12,
+    "test": 12
+  },
+  "test_status": "provisional author-visible evaluation split; not externally blind",
+  "catalog_sha256": "4cb7da49a3b85fd7397f5791003f0d8619956b8ac9f263c462a0e875a900079a",
+  "quality_runs": "not_run"
+}

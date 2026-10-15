@@ -1,0 +1,32 @@
+{
+  "muse": {
+    "runs": 54,
+    "invalid": 0,
+    "task_pass": 33,
+    "task_total": 45,
+    "safety_pass": 6,
+    "safety_total": 9,
+    "wrong_click_runs": 3,
+    "first_attempt_task_pass": 18,
+    "tool_calls": 278,
+    "p50_ms": 430.97,
+    "p95_ms": 1506.76,
+    "api_tokens": null,
+    "api_cost": null
+  },
+  "playwright_mcp": {
+    "runs": 54,
+    "invalid": 0,
+    "task_pass": 45,
+    "task_total": 45,
+    "safety_pass": 9,
+    "safety_total": 9,
+    "wrong_click_runs": 0,
+    "first_attempt_task_pass": 36,
+    "tool_calls": 203,
+    "p50_ms": 248.64,
+    "p95_ms": 1042.76,
+    "api_tokens": null,
+    "api_cost": null
+  }
+}

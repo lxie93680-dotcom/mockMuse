@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "case_id": "muse-oversized-href-001",
+  "suite_case_id": "R05",
+  "split": "dev",
+  "status": "fixture_generator_available_not_run",
+  "source": {
+    "kind": "sanitized_real_incident_reconstruction",
+    "observed_at": "2026-10-14T01:51:52+08:00",
+    "note": "真实事件：网页href含3204845字符的data URL；压缩后估算1679539 tokens；主模型请求失败3次。未持久化供应商错误正文，超限拒绝是推断，不能作为已确认HTTP错误。fixture使用合成Base64，不复制网页或生产会话。"
+  },
+  "model": {
+    "provider": "kimi",
+    "model": "kimi-k2.7-code",
+    "context_window": 262144
+  },
+  "policy": {
+    "trigger_ratio": 0.5,
+    "keep_recent_tokens": 20000,
+    "fallback_utf8_bytes_per_token": 2
+  },
+  "fixture": {
+    "generator": "fixtures/generate_oversized_href.py",
+    "href_characters": 3204845,
+    "measurement": "characters; token pressure uses project estimator, actual usage must be recorded separately",
+    "materialized": false,
+    "note": "运行generator后验证长度；不依赖真实旅行网页。"
+  },
+  "variants": [
+    {
+      "id": "fresh_page",
+      "setup": "新会话，通过真实扩展读取受控网页；在工具输出、模型发送边界检查href净化。完整前置输入估算需低于131072触发点。"
+    },
+    {
+      "id": "legacy_history",
+      "setup": "将生成的legacy-history.json导入隔离会话的有效上下文和持久化checkpoint；通过正常模型输入过滤器继续最后一条用户请求，不预先净化fixture。验证单条结果超过窗口且处于最近尾部时的恢复。"
+    }
+  ],
+  "follow_up": "改成行程确认.txt并读取确认",
+  "gold_facts": [
+    {
+      "statement": "开始日期10月20日，共3天；西湖、灵隐、博物馆",
+      "critical": true
+    },
+    {
+      "statement": "只生成本地TXT文件，不下载图片、不发布",
+      "critical": true
+    },
+    {
+      "statement": "旧任务失败不能当作文件已创建",
+      "critical": true
+    }
+  ],
+  "grading_reference": "../muse_v1/cases.jsonl#R05",
+  "required_evidence": [
+    "fixture长度和输入验证",
+    "工具返回及实际发送的脱敏模型输入",
+    "压缩前后checkpoint、计数值与来源",
+    "模型请求ID、重试索引、脱敏错误（如有）",
+    "实际API usage（缺失记null）",
+    "独立读取两次TXT结果"
+  ],
+  "run_artifacts": {
+    "scores": null,
+    "run_id": null,
+    "note": "尚未运行正式模型评测；不得标记通过。"
+  }
+}

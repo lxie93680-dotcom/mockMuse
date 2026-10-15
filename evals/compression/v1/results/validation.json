@@ -1,0 +1,13 @@
+{
+  "status": "offline_fixture_validation_passed",
+  "base_cases": 24,
+  "variants": 216,
+  "model_calls": 0,
+  "checks": [
+    "IDs/evidence/gold shape",
+    "deterministic generation",
+    "length estimates",
+    "gold positive and empty negative scorer controls"
+  ],
+  "quality_results": null
+}

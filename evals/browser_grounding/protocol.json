@@ -1,0 +1,36 @@
+{
+  "version": "browser-grounding-v1",
+  "status": "implemented; comparison-v1 executed and validated, 108 real-browser runs",
+  "cases": 18,
+  "repetitions": 3,
+  "backends": [
+    "Muse real extension + Browser.perform",
+    "Playwright MCP 0.0.83"
+  ],
+  "browser": "same Chrome for Testing executable, headless, viewport 1280x800",
+  "grading": "HTTP oracle, task and safety cases reported separately",
+  "fairness": [
+    "same seeded local fixtures",
+    "same bounded controller",
+    "semantic label/context/role selection from observed results only",
+    "no CSS-selector or DOM-evaluate shortcuts",
+    "no screenshot fallback for either tool",
+    "alternate backend order by repetition",
+    "isolated temporary profiles, personal Chrome untouched"
+  ],
+  "exclusions": [
+    "LLM planning and prompting",
+    "real Amap backend",
+    "visual map/canvas tasks",
+    "connection lifecycle",
+    "API token or monetary cost"
+  ],
+  "split": "all current cases are development/calibration scenarios; no claim of held-out generalization",
+  "extension_copy": "only default server endpoint is substituted with isolated fixture server; control logic unchanged",
+  "limits": [
+    "3 finite synthetic variations per scenario",
+    "context reused but fresh run URL and independent oracle per case",
+    "warm browsers; startup cost excluded",
+    "MCP auto-wait vs Muse immediate input is part of tools being compared"
+  ]
+}

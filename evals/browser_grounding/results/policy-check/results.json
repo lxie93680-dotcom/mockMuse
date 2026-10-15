@@ -1,0 +1,1119 @@
+[
+  {
+    "case_id": "hover_menu",
+    "title": "悬停出现菜单",
+    "kind": "task",
+    "split": "development",
+    "backend": "muse",
+    "seed": 0,
+    "status": "pass",
+    "first_attempt_success": true,
+    "wrong_click": false,
+    "events": [
+      "target"
+    ],
+    "duration_ms": 186.56,
+    "tool_calls": 5,
+    "tool_errors": 0,
+    "model_visible_chars": 2890,
+    "trace": [
+      {
+        "operation": "navigate",
+        "args": [
+          "http://127.0.0.1:54223/case/bb23bc45feb44d5ebc39147c9937ae4b"
+        ],
+        "duration_ms": 32.28,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "展开候选",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 0,
+              "tag": "button",
+              "text": "展开候选",
+              "type": null,
+              "value": "",
+              "x": 90.6875,
+              "y": 66.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><div onmouseenter=\"menu.hidden=false\"><button data-muse-ref=\"0\">展开候选</button><div id=\"menu\" hidden=\"\"><button onclick=\"report('target')\">灵隐寺 杭州市西湖区 0</button></div></div><script>function report(value){navigator.sendBeacon('/event/bb23bc45feb44d5ebc39147c9937ae4b',JSON.stringify({value}));}</script></body>",
+          "text": "展开候选",
+          "title": "悬停出现菜单",
+          "url": "http://127.0.0.1:54223/case/bb23bc45feb44d5ebc39147c9937ae4b",
+          "width": 1280
+        },
+        "model_visible_chars": 446
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 1.15,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "展开候选",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 0,
+              "tag": "button",
+              "text": "展开候选",
+              "type": null,
+              "value": "",
+              "x": 90.6875,
+              "y": 66.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><div onmouseenter=\"menu.hidden=false\"><button data-muse-ref=\"0\">展开候选</button><div id=\"menu\" hidden=\"\"><button onclick=\"report('target')\">灵隐寺 杭州市西湖区 0</button></div></div><script>function report(value){navigator.sendBeacon('/event/bb23bc45feb44d5ebc39147c9937ae4b',JSON.stringify({value}));}</script></body>",
+          "text": "展开候选",
+          "title": "悬停出现菜单",
+          "url": "http://127.0.0.1:54223/case/bb23bc45feb44d5ebc39147c9937ae4b",
+          "width": 1280
+        },
+        "model_visible_chars": 446
+      },
+      {
+        "operation": "act",
+        "args": [
+          "hover",
+          0,
+          ""
+        ],
+        "duration_ms": 16.1,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "展开候选\n灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 0,
+              "tag": "button",
+              "text": "展开候选",
+              "type": null,
+              "value": "",
+              "x": 90.6875,
+              "y": 66.5
+            },
+            {
+              "context": "灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 1,
+              "tag": "button",
+              "text": "灵隐寺 杭州市西湖区 0",
+              "type": null,
+              "value": "",
+              "x": 146.546875,
+              "y": 135.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><div onmouseenter=\"menu.hidden=false\"><button data-muse-ref=\"0\">展开候选</button><div id=\"menu\"><button onclick=\"report('target')\" data-muse-ref=\"1\">灵隐寺 杭州市西湖区 0</button></div></div><script>function report(value){navigator.sendBeacon('/event/bb23bc45feb44d5ebc39147c9937ae4b',JSON.stringify({value}));}</script></body>",
+          "text": "展开候选\n灵隐寺 杭州市西湖区 0",
+          "title": "悬停出现菜单",
+          "url": "http://127.0.0.1:54223/case/bb23bc45feb44d5ebc39147c9937ae4b",
+          "width": 1280
+        },
+        "model_visible_chars": 666
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 0.84,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "展开候选\n灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 0,
+              "tag": "button",
+              "text": "展开候选",
+              "type": null,
+              "value": "",
+              "x": 90.6875,
+              "y": 66.5
+            },
+            {
+              "context": "灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 1,
+              "tag": "button",
+              "text": "灵隐寺 杭州市西湖区 0",
+              "type": null,
+              "value": "",
+              "x": 146.546875,
+              "y": 135.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><div onmouseenter=\"menu.hidden=false\"><button data-muse-ref=\"0\">展开候选</button><div id=\"menu\"><button onclick=\"report('target')\" data-muse-ref=\"1\">灵隐寺 杭州市西湖区 0</button></div></div><script>function report(value){navigator.sendBeacon('/event/bb23bc45feb44d5ebc39147c9937ae4b',JSON.stringify({value}));}</script></body>",
+          "text": "展开候选\n灵隐寺 杭州市西湖区 0",
+          "title": "悬停出现菜单",
+          "url": "http://127.0.0.1:54223/case/bb23bc45feb44d5ebc39147c9937ae4b",
+          "width": 1280
+        },
+        "model_visible_chars": 666
+      },
+      {
+        "operation": "act",
+        "args": [
+          "click",
+          1,
+          ""
+        ],
+        "duration_ms": 1.96,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "展开候选\n灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 0,
+              "tag": "button",
+              "text": "展开候选",
+              "type": null,
+              "value": "",
+              "x": 90.6875,
+              "y": 66.5
+            },
+            {
+              "context": "灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 1,
+              "tag": "button",
+              "text": "灵隐寺 杭州市西湖区 0",
+              "type": null,
+              "value": "",
+              "x": 146.546875,
+              "y": 135.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><div onmouseenter=\"menu.hidden=false\"><button data-muse-ref=\"0\">展开候选</button><div id=\"menu\"><button onclick=\"report('target')\" data-muse-ref=\"1\">灵隐寺 杭州市西湖区 0</button></div></div><script>function report(value){navigator.sendBeacon('/event/bb23bc45feb44d5ebc39147c9937ae4b',JSON.stringify({value}));}</script></body>",
+          "text": "展开候选\n灵隐寺 杭州市西湖区 0",
+          "title": "悬停出现菜单",
+          "url": "http://127.0.0.1:54223/case/bb23bc45feb44d5ebc39147c9937ae4b",
+          "width": 1280
+        },
+        "model_visible_chars": 666
+      }
+    ]
+  },
+  {
+    "case_id": "hover_menu",
+    "title": "悬停出现菜单",
+    "kind": "task",
+    "split": "development",
+    "backend": "playwright_mcp",
+    "seed": 0,
+    "status": "pass",
+    "first_attempt_success": true,
+    "wrong_click": false,
+    "events": [
+      "target"
+    ],
+    "duration_ms": 538.41,
+    "tool_calls": 5,
+    "tool_errors": 0,
+    "model_visible_chars": 1469,
+    "trace": [
+      {
+        "operation": "navigate",
+        "args": [
+          "http://127.0.0.1:54223/case/cc180f01b61d42a08554395f62bf10e2"
+        ],
+        "duration_ms": 314.86,
+        "error": null,
+        "result": "### Ran Playwright code\n```js\nawait page.goto('http://127.0.0.1:54223/case/cc180f01b61d42a08554395f62bf10e2');\n```\n### Page\n- Page URL: http://127.0.0.1:54223/case/cc180f01b61d42a08554395f62bf10e2\n- Page Title: 悬停出现菜单\n- Console: 1 errors, 0 warnings\n### Snapshot\n- [Snapshot](../../../../../../../../var/folders/1n/vzfnlf3n4rs4z75687149jn00000gn/T/muse-grounding-t1q9c0zh/mcp/page-2026-10-14T12-18-29-203Z.yml)\n### Events\n- New console entries: ../../../../../../../../var/folders/1n/vzfnlf3n4rs4z75687149jn00000gn/T/muse-grounding-t1q9c0zh/mcp/console-2026-10-14T12-18-29-174Z.log#L1",
+        "model_visible_chars": 584
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 3.7,
+        "error": null,
+        "result": "- button \"展开候选\" [ref=e3]",
+        "model_visible_chars": 24
+      },
+      {
+        "operation": "act",
+        "args": [
+          "hover",
+          "e3",
+          ""
+        ],
+        "duration_ms": 37.2,
+        "error": null,
+        "result": "### Ran Playwright code\n```js\nawait page.getByRole('button', { name: '展开候选' }).hover();\n```\n### Page\n- Page URL: http://127.0.0.1:54223/case/cc180f01b61d42a08554395f62bf10e2\n- Page Title: 悬停出现菜单\n- Console: 1 errors, 0 warnings\n### Snapshot\n- [Snapshot](../../../../../../../../var/folders/1n/vzfnlf3n4rs4z75687149jn00000gn/T/muse-grounding-t1q9c0zh/mcp/page-2026-10-14T12-18-29-245Z.yml)",
+        "model_visible_chars": 387
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 2.22,
+        "error": null,
+        "result": "- generic [ref=e2]:\n  - button \"展开候选\" [ref=e3]\n  - button \"灵隐寺 杭州市西湖区 0\" [ref=e5]",
+        "model_visible_chars": 81
+      },
+      {
+        "operation": "act",
+        "args": [
+          "click",
+          "e5",
+          ""
+        ],
+        "duration_ms": 47.71,
+        "error": null,
+        "result": "### Ran Playwright code\n```js\nawait page.getByRole('button', { name: '灵隐寺 杭州市西湖区' }).click();\n```\n### Page\n- Page URL: http://127.0.0.1:54223/case/cc180f01b61d42a08554395f62bf10e2\n- Page Title: 悬停出现菜单\n- Console: 1 errors, 0 warnings\n### Snapshot\n- [Snapshot](../../../../../../../../var/folders/1n/vzfnlf3n4rs4z75687149jn00000gn/T/muse-grounding-t1q9c0zh/mcp/page-2026-10-14T12-18-29-295Z.yml)",
+        "model_visible_chars": 393
+      }
+    ]
+  },
+  {
+    "case_id": "new_tab",
+    "title": "点击打开新标签并切换",
+    "kind": "task",
+    "split": "holdout",
+    "backend": "muse",
+    "seed": 0,
+    "status": "pass",
+    "first_attempt_success": true,
+    "wrong_click": false,
+    "events": [
+      "target"
+    ],
+    "duration_ms": 440.48,
+    "tool_calls": 7,
+    "tool_errors": 0,
+    "model_visible_chars": 3302,
+    "trace": [
+      {
+        "operation": "navigate",
+        "args": [
+          "http://127.0.0.1:54223/case/8401b8dfdf1646a08226b38848e581a9"
+        ],
+        "duration_ms": 107.85,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "打开候选页",
+              "disabled": false,
+              "href": "/popup/8401b8dfdf1646a08226b38848e581a9",
+              "placeholder": null,
+              "ref": 0,
+              "tag": "a",
+              "text": "打开候选页",
+              "type": null,
+              "value": "",
+              "x": 77.859375,
+              "y": 44.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><a href=\"/popup/8401b8dfdf1646a08226b38848e581a9\" target=\"_blank\" data-muse-ref=\"0\">打开候选页</a><script>function report(value){navigator.sendBeacon('/event/8401b8dfdf1646a08226b38848e581a9',JSON.stringify({value}));}</script></body>",
+          "text": "打开候选页",
+          "title": "点击打开新标签并切换",
+          "url": "http://127.0.0.1:54223/case/8401b8dfdf1646a08226b38848e581a9",
+          "width": 1280
+        },
+        "model_visible_chars": 487
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 1.68,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "打开候选页",
+              "disabled": false,
+              "href": "/popup/8401b8dfdf1646a08226b38848e581a9",
+              "placeholder": null,
+              "ref": 0,
+              "tag": "a",
+              "text": "打开候选页",
+              "type": null,
+              "value": "",
+              "x": 77.859375,
+              "y": 44.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><a href=\"/popup/8401b8dfdf1646a08226b38848e581a9\" target=\"_blank\" data-muse-ref=\"0\">打开候选页</a><script>function report(value){navigator.sendBeacon('/event/8401b8dfdf1646a08226b38848e581a9',JSON.stringify({value}));}</script></body>",
+          "text": "打开候选页",
+          "title": "点击打开新标签并切换",
+          "url": "http://127.0.0.1:54223/case/8401b8dfdf1646a08226b38848e581a9",
+          "width": 1280
+        },
+        "model_visible_chars": 487
+      },
+      {
+        "operation": "act",
+        "args": [
+          "click",
+          0,
+          ""
+        ],
+        "duration_ms": 35.76,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "打开候选页",
+              "disabled": false,
+              "href": "/popup/8401b8dfdf1646a08226b38848e581a9",
+              "placeholder": null,
+              "ref": 0,
+              "tag": "a",
+              "text": "打开候选页",
+              "type": null,
+              "value": "",
+              "x": 77.859375,
+              "y": 44.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><a href=\"/popup/8401b8dfdf1646a08226b38848e581a9\" target=\"_blank\" data-muse-ref=\"0\">打开候选页</a><script>function report(value){navigator.sendBeacon('/event/8401b8dfdf1646a08226b38848e581a9',JSON.stringify({value}));}</script></body>",
+          "text": "打开候选页",
+          "title": "点击打开新标签并切换",
+          "url": "http://127.0.0.1:54223/case/8401b8dfdf1646a08226b38848e581a9",
+          "width": 1280
+        },
+        "model_visible_chars": 487
+      },
+      {
+        "operation": "tabs",
+        "args": [],
+        "duration_ms": 1.37,
+        "error": null,
+        "result": {
+          "title": "Chrome 网页列表",
+          "tabs": [
+            {
+              "id": 1541702518,
+              "title": "127.0.0.1:54223",
+              "url": "http://127.0.0.1:54223/",
+              "controlled": false
+            },
+            {
+              "id": 1541702519,
+              "title": "点击打开新标签并切换",
+              "url": "http://127.0.0.1:54223/case/8401b8dfdf1646a08226b38848e581a9",
+              "controlled": true
+            },
+            {
+              "id": 1541702520,
+              "title": "点击打开新标签并切换",
+              "url": "http://127.0.0.1:54223/popup/8401b8dfdf1646a08226b38848e581a9",
+              "controlled": false
+            }
+          ]
+        },
+        "model_visible_chars": 407
+      },
+      {
+        "operation": "select_tab",
+        "args": [
+          1541702520
+        ],
+        "duration_ms": 2.57,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 0,
+              "tag": "button",
+              "text": "灵隐寺 杭州市西湖区 0",
+              "type": null,
+              "value": "",
+              "x": 146.546875,
+              "y": 66.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><button onclick=\"report('target')\" data-muse-ref=\"0\">灵隐寺 杭州市西湖区 0</button><script>function report(value){navigator.sendBeacon('/event/8401b8dfdf1646a08226b38848e581a9',JSON.stringify({value}));}</script></body>",
+          "text": "灵隐寺 杭州市西湖区 0",
+          "title": "点击打开新标签并切换",
+          "url": "http://127.0.0.1:54223/popup/8401b8dfdf1646a08226b38848e581a9",
+          "width": 1280
+        },
+        "model_visible_chars": 478
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 2.94,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 0,
+              "tag": "button",
+              "text": "灵隐寺 杭州市西湖区 0",
+              "type": null,
+              "value": "",
+              "x": 146.546875,
+              "y": 66.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><button onclick=\"report('target')\" data-muse-ref=\"0\">灵隐寺 杭州市西湖区 0</button><script>function report(value){navigator.sendBeacon('/event/8401b8dfdf1646a08226b38848e581a9',JSON.stringify({value}));}</script></body>",
+          "text": "灵隐寺 杭州市西湖区 0",
+          "title": "点击打开新标签并切换",
+          "url": "http://127.0.0.1:54223/popup/8401b8dfdf1646a08226b38848e581a9",
+          "width": 1280
+        },
+        "model_visible_chars": 478
+      },
+      {
+        "operation": "act",
+        "args": [
+          "click",
+          0,
+          ""
+        ],
+        "duration_ms": 3.82,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 0,
+              "tag": "button",
+              "text": "灵隐寺 杭州市西湖区 0",
+              "type": null,
+              "value": "",
+              "x": 146.546875,
+              "y": 66.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><button onclick=\"report('target')\" data-muse-ref=\"0\">灵隐寺 杭州市西湖区 0</button><script>function report(value){navigator.sendBeacon('/event/8401b8dfdf1646a08226b38848e581a9',JSON.stringify({value}));}</script></body>",
+          "text": "灵隐寺 杭州市西湖区 0",
+          "title": "点击打开新标签并切换",
+          "url": "http://127.0.0.1:54223/popup/8401b8dfdf1646a08226b38848e581a9",
+          "width": 1280
+        },
+        "model_visible_chars": 478
+      }
+    ]
+  },
+  {
+    "case_id": "new_tab",
+    "title": "点击打开新标签并切换",
+    "kind": "task",
+    "split": "holdout",
+    "backend": "playwright_mcp",
+    "seed": 0,
+    "status": "fail",
+    "first_attempt_success": false,
+    "wrong_click": false,
+    "events": [],
+    "duration_ms": 1530.49,
+    "tool_calls": 9,
+    "tool_errors": 0,
+    "model_visible_chars": 1133,
+    "trace": [
+      {
+        "operation": "navigate",
+        "args": [
+          "http://127.0.0.1:54223/case/d60faffaeb514fd5a0c2e08c5f62a43f"
+        ],
+        "duration_ms": 36.37,
+        "error": null,
+        "result": "### Ran Playwright code\n```js\nawait page.goto('http://127.0.0.1:54223/case/d60faffaeb514fd5a0c2e08c5f62a43f');\n```\n### Page\n- Page URL: http://127.0.0.1:54223/case/d60faffaeb514fd5a0c2e08c5f62a43f\n- Page Title: 点击打开新标签并切换\n### Snapshot\n- [Snapshot](../../../../../../../../var/folders/1n/vzfnlf3n4rs4z75687149jn00000gn/T/muse-grounding-t1q9c0zh/mcp/page-2026-10-14T12-18-29-906Z.yml)",
+        "model_visible_chars": 382
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 3.7,
+        "error": null,
+        "result": "- link \"打开候选页\" [ref=f1e2] [cursor=pointer]:\n  - /url: /popup/d60faffaeb514fd5a0c2e08c5f62a43f",
+        "model_visible_chars": 93
+      },
+      {
+        "operation": "tabs",
+        "args": [],
+        "duration_ms": 8.51,
+        "error": null,
+        "result": "### Result\n- 0: (current) [点击打开新标签并切换](http://127.0.0.1:54223/case/d60faffaeb514fd5a0c2e08c5f62a43f)",
+        "model_visible_chars": 100
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 6.55,
+        "error": null,
+        "result": "- link \"打开候选页\" [ref=f1e2] [cursor=pointer]:\n  - /url: /popup/d60faffaeb514fd5a0c2e08c5f62a43f",
+        "model_visible_chars": 93
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 9.07,
+        "error": null,
+        "result": "- link \"打开候选页\" [ref=f1e2] [cursor=pointer]:\n  - /url: /popup/d60faffaeb514fd5a0c2e08c5f62a43f",
+        "model_visible_chars": 93
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 11.02,
+        "error": null,
+        "result": "- link \"打开候选页\" [ref=f1e2] [cursor=pointer]:\n  - /url: /popup/d60faffaeb514fd5a0c2e08c5f62a43f",
+        "model_visible_chars": 93
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 11.15,
+        "error": null,
+        "result": "- link \"打开候选页\" [ref=f1e2] [cursor=pointer]:\n  - /url: /popup/d60faffaeb514fd5a0c2e08c5f62a43f",
+        "model_visible_chars": 93
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 12.22,
+        "error": null,
+        "result": "- link \"打开候选页\" [ref=f1e2] [cursor=pointer]:\n  - /url: /popup/d60faffaeb514fd5a0c2e08c5f62a43f",
+        "model_visible_chars": 93
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 11.0,
+        "error": null,
+        "result": "- link \"打开候选页\" [ref=f1e2] [cursor=pointer]:\n  - /url: /popup/d60faffaeb514fd5a0c2e08c5f62a43f",
+        "model_visible_chars": 93
+      }
+    ]
+  },
+  {
+    "case_id": "roadbook_flow",
+    "title": "输入→选择候选→保存草稿",
+    "kind": "task",
+    "split": "development",
+    "backend": "muse",
+    "seed": 0,
+    "status": "pass",
+    "first_attempt_success": false,
+    "wrong_click": false,
+    "events": [
+      "input:灵隐寺 杭州市西湖区 0",
+      "selected",
+      "saved"
+    ],
+    "duration_ms": 504.5,
+    "tool_calls": 7,
+    "tool_errors": 0,
+    "model_visible_chars": 5585,
+    "trace": [
+      {
+        "operation": "navigate",
+        "args": [
+          "http://127.0.0.1:54223/case/b627036f97764b7db53869e81a77f1de"
+        ],
+        "duration_ms": 120.2,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "地点",
+              "disabled": false,
+              "href": null,
+              "placeholder": "输入地点",
+              "ref": 0,
+              "tag": "input",
+              "text": "输入地点",
+              "type": null,
+              "value": "",
+              "x": 188.6875,
+              "y": 66.5
+            },
+            {
+              "context": "地点保存草稿",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 1,
+              "tag": "button",
+              "text": "保存草稿",
+              "type": null,
+              "value": "",
+              "x": 367.375,
+              "y": 66.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><label>地点<input placeholder=\"输入地点\" oninput=\"candidates.hidden=false;report('input:'+this.value)\" data-muse-ref=\"0\"></label><div id=\"candidates\" hidden=\"\"><button onclick=\"report('selected')\">灵隐寺 杭州市西湖区 0</button></div><button onclick=\"report('saved')\" data-muse-ref=\"1\">保存草稿</button><script>function report(value){navigator.sendBeacon('/event/b627036f97764b7db53869e81a77f1de',JSON.stringify({value}));}</script></body>",
+          "text": "地点保存草稿",
+          "title": "输入→选择候选→保存草稿",
+          "url": "http://127.0.0.1:54223/case/b627036f97764b7db53869e81a77f1de",
+          "width": 1280
+        },
+        "model_visible_chars": 630
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 1.7,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "地点",
+              "disabled": false,
+              "href": null,
+              "placeholder": "输入地点",
+              "ref": 0,
+              "tag": "input",
+              "text": "输入地点",
+              "type": null,
+              "value": "",
+              "x": 188.6875,
+              "y": 66.5
+            },
+            {
+              "context": "地点保存草稿",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 1,
+              "tag": "button",
+              "text": "保存草稿",
+              "type": null,
+              "value": "",
+              "x": 367.375,
+              "y": 66.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><label>地点<input placeholder=\"输入地点\" oninput=\"candidates.hidden=false;report('input:'+this.value)\" data-muse-ref=\"0\"></label><div id=\"candidates\" hidden=\"\"><button onclick=\"report('selected')\">灵隐寺 杭州市西湖区 0</button></div><button onclick=\"report('saved')\" data-muse-ref=\"1\">保存草稿</button><script>function report(value){navigator.sendBeacon('/event/b627036f97764b7db53869e81a77f1de',JSON.stringify({value}));}</script></body>",
+          "text": "地点保存草稿",
+          "title": "输入→选择候选→保存草稿",
+          "url": "http://127.0.0.1:54223/case/b627036f97764b7db53869e81a77f1de",
+          "width": 1280
+        },
+        "model_visible_chars": 630
+      },
+      {
+        "operation": "act",
+        "args": [
+          "type",
+          0,
+          "灵隐寺 杭州市西湖区 0"
+        ],
+        "duration_ms": 33.81,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "地点",
+              "disabled": false,
+              "href": null,
+              "placeholder": "输入地点",
+              "ref": 0,
+              "tag": "input",
+              "text": "输入地点",
+              "type": null,
+              "value": "灵隐寺 杭州市西湖区 0",
+              "x": 188.6875,
+              "y": 64.5
+            },
+            {
+              "context": "灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 1,
+              "tag": "button",
+              "text": "灵隐寺 杭州市西湖区 0",
+              "type": null,
+              "value": "",
+              "x": 146.546875,
+              "y": 131.5
+            },
+            {
+              "context": "地点\n灵隐寺 杭州市西湖区 0\n保存草稿",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 2,
+              "tag": "button",
+              "text": "保存草稿",
+              "type": null,
+              "value": "",
+              "x": 90.6875,
+              "y": 200.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><label>地点<input placeholder=\"输入地点\" oninput=\"candidates.hidden=false;report('input:'+this.value)\" data-muse-ref=\"0\"></label><div id=\"candidates\"><button onclick=\"report('selected')\" data-muse-ref=\"1\">灵隐寺 杭州市西湖区 0</button></div><button onclick=\"report('saved')\" data-muse-ref=\"2\">保存草稿</button><script>function report(value){navigator.sendBeacon('/event/b627036f97764b7db53869e81a77f1de',JSON.stringify({value}));}</script></body>",
+          "text": "地点\n灵隐寺 杭州市西湖区 0\n保存草稿",
+          "title": "输入→选择候选→保存草稿",
+          "url": "http://127.0.0.1:54223/case/b627036f97764b7db53869e81a77f1de",
+          "width": 1280
+        },
+        "model_visible_chars": 865
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 2.2,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "地点",
+              "disabled": false,
+              "href": null,
+              "placeholder": "输入地点",
+              "ref": 0,
+              "tag": "input",
+              "text": "输入地点",
+              "type": null,
+              "value": "灵隐寺 杭州市西湖区 0",
+              "x": 188.6875,
+              "y": 64.5
+            },
+            {
+              "context": "灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 1,
+              "tag": "button",
+              "text": "灵隐寺 杭州市西湖区 0",
+              "type": null,
+              "value": "",
+              "x": 146.546875,
+              "y": 131.5
+            },
+            {
+              "context": "地点\n灵隐寺 杭州市西湖区 0\n保存草稿",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 2,
+              "tag": "button",
+              "text": "保存草稿",
+              "type": null,
+              "value": "",
+              "x": 90.6875,
+              "y": 200.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><label>地点<input placeholder=\"输入地点\" oninput=\"candidates.hidden=false;report('input:'+this.value)\" data-muse-ref=\"0\"></label><div id=\"candidates\"><button onclick=\"report('selected')\" data-muse-ref=\"1\">灵隐寺 杭州市西湖区 0</button></div><button onclick=\"report('saved')\" data-muse-ref=\"2\">保存草稿</button><script>function report(value){navigator.sendBeacon('/event/b627036f97764b7db53869e81a77f1de',JSON.stringify({value}));}</script></body>",
+          "text": "地点\n灵隐寺 杭州市西湖区 0\n保存草稿",
+          "title": "输入→选择候选→保存草稿",
+          "url": "http://127.0.0.1:54223/case/b627036f97764b7db53869e81a77f1de",
+          "width": 1280
+        },
+        "model_visible_chars": 865
+      },
+      {
+        "operation": "act",
+        "args": [
+          "click",
+          1,
+          ""
+        ],
+        "duration_ms": 2.93,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "地点",
+              "disabled": false,
+              "href": null,
+              "placeholder": "输入地点",
+              "ref": 0,
+              "tag": "input",
+              "text": "输入地点",
+              "type": null,
+              "value": "灵隐寺 杭州市西湖区 0",
+              "x": 188.6875,
+              "y": 64.5
+            },
+            {
+              "context": "灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 1,
+              "tag": "button",
+              "text": "灵隐寺 杭州市西湖区 0",
+              "type": null,
+              "value": "",
+              "x": 146.546875,
+              "y": 131.5
+            },
+            {
+              "context": "地点\n灵隐寺 杭州市西湖区 0\n保存草稿",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 2,
+              "tag": "button",
+              "text": "保存草稿",
+              "type": null,
+              "value": "",
+              "x": 90.6875,
+              "y": 200.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><label>地点<input placeholder=\"输入地点\" oninput=\"candidates.hidden=false;report('input:'+this.value)\" data-muse-ref=\"0\"></label><div id=\"candidates\"><button onclick=\"report('selected')\" data-muse-ref=\"1\">灵隐寺 杭州市西湖区 0</button></div><button onclick=\"report('saved')\" data-muse-ref=\"2\">保存草稿</button><script>function report(value){navigator.sendBeacon('/event/b627036f97764b7db53869e81a77f1de',JSON.stringify({value}));}</script></body>",
+          "text": "地点\n灵隐寺 杭州市西湖区 0\n保存草稿",
+          "title": "输入→选择候选→保存草稿",
+          "url": "http://127.0.0.1:54223/case/b627036f97764b7db53869e81a77f1de",
+          "width": 1280
+        },
+        "model_visible_chars": 865
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 2.84,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "地点",
+              "disabled": false,
+              "href": null,
+              "placeholder": "输入地点",
+              "ref": 0,
+              "tag": "input",
+              "text": "输入地点",
+              "type": null,
+              "value": "灵隐寺 杭州市西湖区 0",
+              "x": 188.6875,
+              "y": 64.5
+            },
+            {
+              "context": "灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 1,
+              "tag": "button",
+              "text": "灵隐寺 杭州市西湖区 0",
+              "type": null,
+              "value": "",
+              "x": 146.546875,
+              "y": 131.5
+            },
+            {
+              "context": "地点\n灵隐寺 杭州市西湖区 0\n保存草稿",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 2,
+              "tag": "button",
+              "text": "保存草稿",
+              "type": null,
+              "value": "",
+              "x": 90.6875,
+              "y": 200.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><label>地点<input placeholder=\"输入地点\" oninput=\"candidates.hidden=false;report('input:'+this.value)\" data-muse-ref=\"0\"></label><div id=\"candidates\"><button onclick=\"report('selected')\" data-muse-ref=\"1\">灵隐寺 杭州市西湖区 0</button></div><button onclick=\"report('saved')\" data-muse-ref=\"2\">保存草稿</button><script>function report(value){navigator.sendBeacon('/event/b627036f97764b7db53869e81a77f1de',JSON.stringify({value}));}</script></body>",
+          "text": "地点\n灵隐寺 杭州市西湖区 0\n保存草稿",
+          "title": "输入→选择候选→保存草稿",
+          "url": "http://127.0.0.1:54223/case/b627036f97764b7db53869e81a77f1de",
+          "width": 1280
+        },
+        "model_visible_chars": 865
+      },
+      {
+        "operation": "act",
+        "args": [
+          "click",
+          2,
+          ""
+        ],
+        "duration_ms": 2.75,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "地点",
+              "disabled": false,
+              "href": null,
+              "placeholder": "输入地点",
+              "ref": 0,
+              "tag": "input",
+              "text": "输入地点",
+              "type": null,
+              "value": "灵隐寺 杭州市西湖区 0",
+              "x": 188.6875,
+              "y": 64.5
+            },
+            {
+              "context": "灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 1,
+              "tag": "button",
+              "text": "灵隐寺 杭州市西湖区 0",
+              "type": null,
+              "value": "",
+              "x": 146.546875,
+              "y": 131.5
+            },
+            {
+              "context": "地点\n灵隐寺 杭州市西湖区 0\n保存草稿",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 2,
+              "tag": "button",
+              "text": "保存草稿",
+              "type": null,
+              "value": "",
+              "x": 90.6875,
+              "y": 200.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><label>地点<input placeholder=\"输入地点\" oninput=\"candidates.hidden=false;report('input:'+this.value)\" data-muse-ref=\"0\"></label><div id=\"candidates\"><button onclick=\"report('selected')\" data-muse-ref=\"1\">灵隐寺 杭州市西湖区 0</button></div><button onclick=\"report('saved')\" data-muse-ref=\"2\">保存草稿</button><script>function report(value){navigator.sendBeacon('/event/b627036f97764b7db53869e81a77f1de',JSON.stringify({value}));}</script></body>",
+          "text": "地点\n灵隐寺 杭州市西湖区 0\n保存草稿",
+          "title": "输入→选择候选→保存草稿",
+          "url": "http://127.0.0.1:54223/case/b627036f97764b7db53869e81a77f1de",
+          "width": 1280
+        },
+        "model_visible_chars": 865
+      }
+    ]
+  },
+  {
+    "case_id": "roadbook_flow",
+    "title": "输入→选择候选→保存草稿",
+    "kind": "task",
+    "split": "development",
+    "backend": "playwright_mcp",
+    "seed": 0,
+    "status": "pass",
+    "first_attempt_success": false,
+    "wrong_click": false,
+    "events": [
+      "input:灵隐寺 杭州市西湖区 0",
+      "selected",
+      "saved"
+    ],
+    "duration_ms": 492.65,
+    "tool_calls": 7,
+    "tool_errors": 0,
+    "model_visible_chars": 1811,
+    "trace": [
+      {
+        "operation": "navigate",
+        "args": [
+          "http://127.0.0.1:54223/case/8d7b6455dbee4934a0286cacc9d16be2"
+        ],
+        "duration_ms": 41.49,
+        "error": null,
+        "result": "### Ran Playwright code\n```js\nawait page.goto('http://127.0.0.1:54223/case/8d7b6455dbee4934a0286cacc9d16be2');\n```\n### Page\n- Page URL: http://127.0.0.1:54223/case/8d7b6455dbee4934a0286cacc9d16be2\n- Page Title: 输入→选择候选→保存草稿\n### Snapshot\n- [Snapshot](../../../../../../../../var/folders/1n/vzfnlf3n4rs4z75687149jn00000gn/T/muse-grounding-t1q9c0zh/mcp/page-2026-10-14T12-18-31-949Z.yml)",
+        "model_visible_chars": 384
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 3.59,
+        "error": null,
+        "result": "- generic [active] [ref=f2e1]:\n  - generic [ref=f2e2]:\n    - text: 地点\n    - textbox \"地点\" [ref=f2e3]:\n      - /placeholder: 输入地点\n  - button \"保存草稿\" [ref=f2e4]",
+        "model_visible_chars": 156
+      },
+      {
+        "operation": "act",
+        "args": [
+          "type",
+          "f2e3",
+          "灵隐寺 杭州市西湖区 0"
+        ],
+        "duration_ms": 15.12,
+        "error": null,
+        "result": "### Ran Playwright code\n```js\nawait page.getByRole('textbox', { name: '地点' }).fill('灵隐寺 杭州市西湖区 0');\n```",
+        "model_visible_chars": 103
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 2.51,
+        "error": null,
+        "result": "- generic [ref=f2e1]:\n  - generic [ref=f2e2]:\n    - text: 地点\n    - textbox \"地点\" [active] [ref=f2e3]:\n      - /placeholder: 输入地点\n      - text: 灵隐寺 杭州市西湖区 0\n  - button \"灵隐寺 杭州市西湖区 0\" [ref=f2e6]\n  - button \"保存草稿\" [ref=f2e4]",
+        "model_visible_chars": 220
+      },
+      {
+        "operation": "act",
+        "args": [
+          "click",
+          "f2e6",
+          ""
+        ],
+        "duration_ms": 42.16,
+        "error": null,
+        "result": "### Ran Playwright code\n```js\nawait page.getByRole('button', { name: '灵隐寺 杭州市西湖区' }).click();\n```\n### Page\n- Page URL: http://127.0.0.1:54223/case/8d7b6455dbee4934a0286cacc9d16be2\n- Page Title: 输入→选择候选→保存草稿\n### Snapshot\n- [Snapshot](../../../../../../../../var/folders/1n/vzfnlf3n4rs4z75687149jn00000gn/T/muse-grounding-t1q9c0zh/mcp/page-2026-10-14T12-18-32-012Z.yml)",
+        "model_visible_chars": 367
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 12.57,
+        "error": null,
+        "result": "- generic [ref=f2e1]:\n  - generic [ref=f2e2]:\n    - text: 地点\n    - textbox \"地点\" [ref=f2e3]:\n      - /placeholder: 输入地点\n      - text: 灵隐寺 杭州市西湖区 0\n  - button \"灵隐寺 杭州市西湖区 0\" [active] [ref=f2e6]\n  - button \"保存草稿\" [ref=f2e4]",
+        "model_visible_chars": 220
+      },
+      {
+        "operation": "act",
+        "args": [
+          "click",
+          "f2e4",
+          ""
+        ],
+        "duration_ms": 36.35,
+        "error": null,
+        "result": "### Ran Playwright code\n```js\nawait page.getByRole('button', { name: '保存草稿' }).click();\n```\n### Page\n- Page URL: http://127.0.0.1:54223/case/8d7b6455dbee4934a0286cacc9d16be2\n- Page Title: 输入→选择候选→保存草稿\n### Snapshot\n- [Snapshot](../../../../../../../../var/folders/1n/vzfnlf3n4rs4z75687149jn00000gn/T/muse-grounding-t1q9c0zh/mcp/page-2026-10-14T12-18-32-265Z.yml)",
+        "model_visible_chars": 361
+      }
+    ]
+  }
+]

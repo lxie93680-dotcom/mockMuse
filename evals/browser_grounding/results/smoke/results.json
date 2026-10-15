@@ -1,0 +1,168 @@
+[
+  {
+    "case_id": "unique",
+    "title": "唯一按钮",
+    "kind": "task",
+    "split": "holdout",
+    "backend": "muse",
+    "seed": 0,
+    "status": "pass",
+    "first_attempt_success": true,
+    "wrong_click": false,
+    "events": [
+      "target"
+    ],
+    "duration_ms": 188.25,
+    "tool_calls": 3,
+    "tool_errors": 0,
+    "model_visible_chars": 1413,
+    "trace": [
+      {
+        "operation": "navigate",
+        "args": [
+          "http://127.0.0.1:54073/case/61dc67ba5be441f3a5581e4922c378c1"
+        ],
+        "duration_ms": 40.39,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 0,
+              "tag": "button",
+              "text": "灵隐寺 杭州市西湖区 0",
+              "type": null,
+              "value": "",
+              "x": 146.546875,
+              "y": 66.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><button onclick=\"report('target')\" data-muse-ref=\"0\">灵隐寺 杭州市西湖区 0</button><script>function report(value){navigator.sendBeacon('/event/61dc67ba5be441f3a5581e4922c378c1',JSON.stringify({value}));}</script></body>",
+          "text": "灵隐寺 杭州市西湖区 0",
+          "title": "唯一按钮",
+          "url": "http://127.0.0.1:54073/case/61dc67ba5be441f3a5581e4922c378c1",
+          "width": 1280
+        },
+        "model_visible_chars": 471
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 0.81,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 0,
+              "tag": "button",
+              "text": "灵隐寺 杭州市西湖区 0",
+              "type": null,
+              "value": "",
+              "x": 146.546875,
+              "y": 66.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><button onclick=\"report('target')\" data-muse-ref=\"0\">灵隐寺 杭州市西湖区 0</button><script>function report(value){navigator.sendBeacon('/event/61dc67ba5be441f3a5581e4922c378c1',JSON.stringify({value}));}</script></body>",
+          "text": "灵隐寺 杭州市西湖区 0",
+          "title": "唯一按钮",
+          "url": "http://127.0.0.1:54073/case/61dc67ba5be441f3a5581e4922c378c1",
+          "width": 1280
+        },
+        "model_visible_chars": 471
+      },
+      {
+        "operation": "act",
+        "args": [
+          "click",
+          0,
+          ""
+        ],
+        "duration_ms": 14.4,
+        "error": null,
+        "result": {
+          "elements": [
+            {
+              "context": "灵隐寺 杭州市西湖区 0",
+              "disabled": false,
+              "href": null,
+              "placeholder": null,
+              "ref": 0,
+              "tag": "button",
+              "text": "灵隐寺 杭州市西湖区 0",
+              "type": null,
+              "value": "",
+              "x": 146.546875,
+              "y": 66.5
+            }
+          ],
+          "height": 800,
+          "html": "<body><button onclick=\"report('target')\" data-muse-ref=\"0\">灵隐寺 杭州市西湖区 0</button><script>function report(value){navigator.sendBeacon('/event/61dc67ba5be441f3a5581e4922c378c1',JSON.stringify({value}));}</script></body>",
+          "text": "灵隐寺 杭州市西湖区 0",
+          "title": "唯一按钮",
+          "url": "http://127.0.0.1:54073/case/61dc67ba5be441f3a5581e4922c378c1",
+          "width": 1280
+        },
+        "model_visible_chars": 471
+      }
+    ]
+  },
+  {
+    "case_id": "unique",
+    "title": "唯一按钮",
+    "kind": "task",
+    "split": "holdout",
+    "backend": "playwright_mcp",
+    "seed": 0,
+    "status": "pass",
+    "first_attempt_success": true,
+    "wrong_click": false,
+    "events": [
+      "target"
+    ],
+    "duration_ms": 480.26,
+    "tool_calls": 3,
+    "tool_errors": 0,
+    "model_visible_chars": 1005,
+    "trace": [
+      {
+        "operation": "navigate",
+        "args": [
+          "http://127.0.0.1:54073/case/0838a40cd2f44472a91ac40703509c72"
+        ],
+        "duration_ms": 302.68,
+        "error": null,
+        "result": "### Ran Playwright code\n```js\nawait page.goto('http://127.0.0.1:54073/case/0838a40cd2f44472a91ac40703509c72');\n```\n### Page\n- Page URL: http://127.0.0.1:54073/case/0838a40cd2f44472a91ac40703509c72\n- Page Title: 唯一按钮\n- Console: 1 errors, 0 warnings\n### Snapshot\n- [Snapshot](../../../../../../../../var/folders/1n/vzfnlf3n4rs4z75687149jn00000gn/T/muse-grounding-gzeqlp31/mcp/page-2026-10-14T12-15-22-919Z.yml)\n### Events\n- New console entries: ../../../../../../../../var/folders/1n/vzfnlf3n4rs4z75687149jn00000gn/T/muse-grounding-gzeqlp31/mcp/console-2026-10-14T12-15-22-892Z.log#L1",
+        "model_visible_chars": 582
+      },
+      {
+        "operation": "snapshot",
+        "args": [],
+        "duration_ms": 3.51,
+        "error": null,
+        "result": "- button \"灵隐寺 杭州市西湖区 0\" [ref=e2]",
+        "model_visible_chars": 32
+      },
+      {
+        "operation": "act",
+        "args": [
+          "click",
+          "e2",
+          ""
+        ],
+        "duration_ms": 39.67,
+        "error": null,
+        "result": "### Ran Playwright code\n```js\nawait page.getByRole('button', { name: '灵隐寺 杭州市西湖区' }).click();\n```\n### Page\n- Page URL: http://127.0.0.1:54073/case/0838a40cd2f44472a91ac40703509c72\n- Page Title: 唯一按钮\n- Console: 1 errors, 0 warnings\n### Snapshot\n- [Snapshot](../../../../../../../../var/folders/1n/vzfnlf3n4rs4z75687149jn00000gn/T/muse-grounding-gzeqlp31/mcp/page-2026-10-14T12-15-22-963Z.yml)",
+        "model_visible_chars": 391
+      }
+    ]
+  }
+]

@@ -1,0 +1,155 @@
+{
+  "date": "2026-10-14",
+  "mode": "tool_layer_real_browser_no_llm",
+  "browser": "153.0.8010.12",
+  "viewport": [
+    1280,
+    800
+  ],
+  "repeats": 3,
+  "cases": [
+    {
+      "id": "unique",
+      "title": "唯一按钮",
+      "fixture": "basic",
+      "kind": "task",
+      "split": "development"
+    },
+    {
+      "id": "duplicate_context",
+      "title": "同名按钮按地区区分",
+      "fixture": "duplicate",
+      "kind": "task",
+      "split": "development"
+    },
+    {
+      "id": "hidden_duplicate",
+      "title": "隐藏同名按钮",
+      "fixture": "hidden",
+      "kind": "task",
+      "split": "development"
+    },
+    {
+      "id": "delayed_target",
+      "title": "延迟出现候选",
+      "fixture": "delayed",
+      "kind": "task",
+      "split": "development"
+    },
+    {
+      "id": "replaced_element",
+      "title": "观察后重建DOM",
+      "fixture": "replace",
+      "kind": "task",
+      "split": "development"
+    },
+    {
+      "id": "ref_reuse_safety",
+      "title": "旧ref在新快照被重新分配",
+      "fixture": "reuse",
+      "kind": "safety",
+      "split": "development"
+    },
+    {
+      "id": "overlay",
+      "title": "临时遮挡",
+      "fixture": "overlay",
+      "kind": "task",
+      "split": "development"
+    },
+    {
+      "id": "disabled",
+      "title": "按钮延迟启用",
+      "fixture": "disabled",
+      "kind": "task",
+      "split": "development"
+    },
+    {
+      "id": "offscreen",
+      "title": "屏幕外按钮",
+      "fixture": "offscreen",
+      "kind": "task",
+      "split": "development"
+    },
+    {
+      "id": "large_page",
+      "title": "超过120个控件",
+      "fixture": "large",
+      "kind": "task",
+      "split": "development"
+    },
+    {
+      "id": "same_origin_frame",
+      "title": "同源iframe",
+      "fixture": "iframe",
+      "kind": "task",
+      "split": "development"
+    },
+    {
+      "id": "cross_origin_frame",
+      "title": "跨域iframe",
+      "fixture": "crossframe",
+      "kind": "task",
+      "split": "development"
+    },
+    {
+      "id": "shadow_dom",
+      "title": "开放Shadow DOM",
+      "fixture": "shadow",
+      "kind": "task",
+      "split": "development"
+    },
+    {
+      "id": "hover_menu",
+      "title": "悬停出现菜单",
+      "fixture": "hover",
+      "kind": "task",
+      "split": "development"
+    },
+    {
+      "id": "ambiguous_safety",
+      "title": "两个无法区分的同名候选应停止选择",
+      "fixture": "ambiguous",
+      "kind": "safety",
+      "split": "development"
+    },
+    {
+      "id": "no_match_safety",
+      "title": "目标不存在不得误点",
+      "fixture": "missing",
+      "kind": "safety",
+      "split": "development"
+    },
+    {
+      "id": "new_tab",
+      "title": "点击打开新标签并切换",
+      "fixture": "newtab",
+      "kind": "task",
+      "split": "development"
+    },
+    {
+      "id": "roadbook_flow",
+      "title": "输入→选择候选→保存草稿",
+      "fixture": "flow",
+      "kind": "task",
+      "split": "development"
+    }
+  ],
+  "mcp_version": "0.0.83",
+  "baseline": "real Muse Chrome extension + muse.browser.Browser.perform",
+  "baseline_endpoint_substitution_only": true,
+  "source_sha256": {
+    "extension/worker.js": "24ac1a16ac2442252df4d303c19203c508bde6214af5e4bdb5b7ad11e00f793d",
+    "extension/manifest.json": "f4d6797ae746dab4bc6e7f9bbdef01ac39adc180d3c5b0d96553f264527743b1",
+    "muse/browser.py": "7557fe484fe1bd2e24b904dcc534f33e81268eef773bb72135abe6a5df5f4582",
+    "muse/tool_results.py": "683049662395a871baa4d1079fbc48b514db5d1b24da08595d48bc63697ae46a",
+    "evals/browser_grounding/run.py": "220b365dfba89b2df2cb62a7a713ff22b83fec56315ea37fd2c4bb24ff2583ab",
+    "evals/browser_grounding/fixtures.py": "ae0adfb91ef9dd4e8c2d8a17444e013d1fac3ec8edd26abe102cdb8a88fb0c6f",
+    "evals/browser_grounding/runtime/package-lock.json": "717bc300eb0f32628498ff31b2483e893e39df6003146083fc4198ebc57b5798"
+  },
+  "policy": "same bounded scripted observer: match visible label/context, at most 6 fresh-snapshot attempts; no DOM eval, CSS selector, screenshot fallback, or site-specific selector supplied to executor",
+  "isolation": "separate temporary browser profiles; local synthetic fixtures; no personal Chrome, no model keys",
+  "excluded": "LLM planning, tool-selection decisions, live Amap, connection lifecycle, visual fallback, model token cost",
+  "action_timeout_ms": 1500,
+  "mutation": "deterministic controller arms same replacement; stale-ref safety intentionally refreshes snapshot before using old ref"
+}

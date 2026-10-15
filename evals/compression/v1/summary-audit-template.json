@@ -1,0 +1,12 @@
+{
+  "status": "manual_or_independent_judge_required_not_executed",
+  "run_id": null,
+  "variant_id": null,
+  "round": null,
+  "summary_sha256": null,
+  "claims": [{"claim": "填写摘要的原子断言", "evidence_item_ids": [], "verdict": "supported|contradicted|unsupported", "critical": false, "reviewer": null}],
+  "missing_gold_facts": [],
+  "unsupported_rate": null,
+  "critical_contradictions": null,
+  "note": "需逐断言标注证据，未知结果保持null。QA分数不能代替完整摘要事实性审计。"
+}

@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Muse 浏览器连接器",
+  "version": "0.2.0",
+  "minimum_chrome_version": "125",
+  "description": "自动连接本机 Muse，按任务操作 Chrome 网页，无需逐页授权。",
+  "permissions": [
+    "debugger",
+    "storage",
+    "activeTab"
+  ],
+  "background": {
+    "service_worker": "worker.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

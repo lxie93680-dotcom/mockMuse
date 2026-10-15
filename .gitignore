@@ -1,0 +1,16 @@
+.venv/
+.env
+__pycache__/
+.pytest_cache/
+data/
+
+vendor/playwright/node_modules/
+
+# Local dependencies, browser artifacts, and third-party reference checkouts
+node_modules/
+.DS_Store
+.playwright-mcp/
+.env.*
+!.env.example
+/references/openclaw/
+/references/hermes-agent/

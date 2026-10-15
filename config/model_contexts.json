@@ -1,0 +1,34 @@
+{
+  "kimi:kimi-k2.7-code": {
+    "context_window": 262144,
+    "compression_threshold": 0.5,
+    "keep_recent_tokens": 20000,
+    "fallback_utf8_bytes_per_token": 2,
+    "image_token_budget": 4096,
+    "usage_input_field": "prompt_tokens"
+  },
+  "kimi:kimi-k2.6": {
+    "context_window": 262144,
+    "compression_threshold": 0.5,
+    "keep_recent_tokens": 20000,
+    "fallback_utf8_bytes_per_token": 2,
+    "image_token_budget": 4096,
+    "usage_input_field": "prompt_tokens"
+  },
+  "kimi:kimi-k2.5": {
+    "context_window": 262144,
+    "compression_threshold": 0.5,
+    "keep_recent_tokens": 20000,
+    "fallback_utf8_bytes_per_token": 2,
+    "image_token_budget": 4096,
+    "usage_input_field": "prompt_tokens"
+  },
+  "deepseek:deepseek-flash": {
+    "context_window": 1000000,
+    "compression_threshold": 0.5,
+    "keep_recent_tokens": 20000,
+    "fallback_utf8_bytes_per_token": 2,
+    "image_token_budget": 4096,
+    "usage_input_field": "prompt_tokens"
+  }
+}

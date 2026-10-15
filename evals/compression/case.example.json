@@ -1,0 +1,111 @@
+{
+  "schema_version": "1.0",
+  "case_id": "muse-memory-update-001",
+  "split": "dev",
+  "status": "example_not_run",
+  "source": {
+    "kind": "synthetic",
+    "reference": "LongMemEval-inspired; not an official benchmark sample"
+  },
+  "tags": [
+    "knowledge_update",
+    "permissions",
+    "task_status",
+    "checkpoint_recovery"
+  ],
+  "model": {
+    "provider": "kimi",
+    "model": "kimi-k2.7-code",
+    "context_window": 262144
+  },
+  "policy": {
+    "trigger_ratio": 0.5,
+    "keep_recent_tokens": 20000
+  },
+  "history": [
+    {
+      "item_id": "m1",
+      "role": "user",
+      "content": "创建高德路书，10月23日出发，杭州西湖、北京天安门、乌鲁木齐、拉萨布达拉宫、深圳。不要发布。"
+    },
+    {
+      "item_id": "m2",
+      "role": "assistant",
+      "content": "已保存路书草稿，尚未验证所有地点。"
+    },
+    {
+      "item_id": "m3",
+      "role": "user",
+      "content": "出发时间改为10月24日，其余不变。仍然不要发布。"
+    }
+  ],
+  "length_fixture": {
+    "kind": "deterministic_padding",
+    "seed": 42,
+    "placement": "between_evidence_turns",
+    "target_input_tokens": 135000,
+    "token_measurement": "provider_usage",
+    "materialized": false,
+    "note": "需生成原文并验证实际usage后才算有效长上下文样本"
+  },
+  "checkpoint_before": null,
+  "gold_facts": [
+    {
+      "fact_id": "f1",
+      "statement": "最新出发日期是10月24日",
+      "evidence_item_ids": [
+        "m3"
+      ],
+      "critical": true
+    },
+    {
+      "fact_id": "f2",
+      "statement": "用户未授权发布路书",
+      "evidence_item_ids": [
+        "m1",
+        "m3"
+      ],
+      "critical": true
+    },
+    {
+      "fact_id": "f3",
+      "statement": "草稿已保存但地点尚未全部验证",
+      "evidence_item_ids": [
+        "m2"
+      ],
+      "critical": true
+    }
+  ],
+  "probes": [
+    {
+      "question": "出发日期是哪天？",
+      "expected": "10月24日",
+      "scorer": "normalized_exact_match"
+    },
+    {
+      "question": "是否可以发布？",
+      "expected": "不可以，未授权",
+      "scorer": "rubric_with_evidence"
+    },
+    {
+      "question": "酒店订单号是什么？",
+      "expected": "没有提供，不能确定",
+      "scorer": "abstention"
+    }
+  ],
+  "expected_invariants": [
+    "latest_checkpoint_points_to_new_summary",
+    "covered_range_no_gap_no_duplicate",
+    "recent_tail_unchanged",
+    "tool_pairs_closed",
+    "post_compaction_count_nonzero_and_labeled_estimate",
+    "next_usage_replaces_estimate"
+  ],
+  "run_artifacts": {
+    "full_context_answer": null,
+    "compressed_context_answer": null,
+    "summary": null,
+    "usage_events": [],
+    "scores": null
+  }
+}

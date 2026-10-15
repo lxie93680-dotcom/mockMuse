@@ -1,0 +1,70 @@
+{
+  "version": "muse-compression-v1",
+  "date": "2026-10-15",
+  "status": "implemented_offline_validated_live_not_run",
+  "scope": "forced Muse compression kernel + no-tool reader QA; production trigger/lifecycle tested separately",
+  "axes": [
+    "efficiency",
+    "downstream_context_understanding"
+  ],
+  "groups": [
+    "full",
+    "compressed",
+    "tail_approximately_equal_estimated_budget"
+  ],
+  "reader_control": "same provider/model/parameters/question/schema, shuffled group order",
+  "compressor_input": "history prefix only; no query or gold",
+  "base_cases": 24,
+  "variants": 216,
+  "repetitions": 3,
+  "cumulative_rounds": 5,
+  "counting": "Muse utf8/2 estimates for generation; actual normalized provider usage for cost/token metrics",
+  "quality": [
+    "strict structured JSON accuracy",
+    "field accuracy",
+    "category macro accuracy",
+    "paired accuracy drop pp",
+    "full-correct compressed-wrong",
+    "critical failures",
+    "family-cluster bootstrap95CI"
+  ],
+  "efficiency": [
+    "actual reader input reduction",
+    "compression latency p50/p95",
+    "one-probe net total token reduction including compressor",
+    "failure and unknown usage counts"
+  ],
+  "acceptance_targets_not_results": {
+    "engineering_pass_rate": 1.0,
+    "critical_failures": 0,
+    "paired_accuracy_drop_pp_max": 3,
+    "actual_request_input_reduction_min": 0.5,
+    "note": "provisional product targets; 24 synthetic families insufficient for release confidence"
+  },
+  "not_automatically_measured": [
+    "summary-wide hallucination rate",
+    "monetary savings without price schedule",
+    "real multi-call downstream task success",
+    "production auto-trigger",
+    "images and real tool executions"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval",
+      "adopted": "fact extraction, updates, temporal, abstention, evidence"
+    },
+    {
+      "url": "https://github.com/NVIDIA/RULER",
+      "adopted": "controlled synthetic length, evidence position, multihop, aggregation"
+    },
+    {
+      "url": "https://github.com/microsoft/LLMLingua/blob/main/experiments/llmlingua2/README.md",
+      "adopted": "compression then downstream evaluation"
+    },
+    {
+      "url": "https://github.com/THUDM/LongBench",
+      "adopted": "multitask long-context QA comparison"
+    }
+  ],
+  "source_reuse": "methods only; original synthetic data, not official benchmark scores"
+}

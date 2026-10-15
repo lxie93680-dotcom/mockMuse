@@ -1,0 +1,7 @@
+FROM python:3.13-slim
+RUN pip install --no-cache-dir fastapi uvicorn && useradd --uid 10001 --create-home muse
+WORKDIR /app
+COPY muse/linux_worker.py /app/linux_worker.py
+RUN mkdir /workspace && chown muse:muse /workspace
+USER muse
+CMD ["uvicorn", "linux_worker:app", "--host", "0.0.0.0", "--port", "8765", "--loop", "asyncio"]

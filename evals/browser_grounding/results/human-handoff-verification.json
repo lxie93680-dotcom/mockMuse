@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-14",
+  "mode": "real local browsers and workbench UI; synthetic challenge; mocked Agent; no model API",
+  "checks": {
+    "visible_challenge_stops_automation": true,
+    "status_needs_human": true,
+    "ui_reminder": true,
+    "automatic_exclusive_takeover": true,
+    "unresolved_challenge_resume_409": true,
+    "explicit_resume_button": true,
+    "task_continues_after_manual": true,
+    "restart_restores_last_page": true
+  },
+  "python_regression_tests": 91,
+  "real_captcha_solved": false,
+  "limitations": [
+    "Text/accessibility detection; pure image challenge needs Agent request_human",
+    "No real Amap verification was solved"
+  ]
+}

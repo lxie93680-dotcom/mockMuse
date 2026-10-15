@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-14",
+  "backend": "playwright",
+  "mcp_version": "0.0.83",
+  "browser_version": "153.0.8010.12",
+  "mode": "real isolated integration; no model calls",
+  "checks": {
+    "driver_ready": true,
+    "actual_semantic_observation": true,
+    "demo_open_fill_click_read": true,
+    "mcp_string_refs_preserved": true,
+    "live_screencast_1280_800": true,
+    "manual_takeover_navigation": true,
+    "mcp_observation_after_manual": true,
+    "jpeg_screenshot": true
+  },
+  "production": {
+    "backend": "playwright",
+    "driver_ready": true,
+    "video_connector_connected": true,
+    "actual_observation_title": "Muse 远程控制测试"
+  },
+  "regression_tests": 88,
+  "limits": [
+    "No live Amap task or model-driven end-to-end run",
+    "Normal Chrome login state not migrated; dedicated persistent profile selected by user"
+  ]
+}

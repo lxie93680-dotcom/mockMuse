@@ -1,0 +1,12 @@
+[
+  {
+    "name": "hermes-agent",
+    "path": "/Users/yue/Desktop/mockMuse/references/hermes-agent",
+    "commit": "6e7b83a2f1c093e992a8d838ed77ea320fbd8e51"
+  },
+  {
+    "name": "openclaw",
+    "path": "/Users/yue/Desktop/mockMuse/references/openclaw",
+    "commit": "2a8f8c92ef15a82d83d114fe9a4dfa433e415a38"
+  }
+]
