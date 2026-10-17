@@ -1,0 +1,87 @@
+{
+  "mode": "direct_only",
+  "total": 54,
+  "counts": {
+    "pass": 46,
+    "fail": 0,
+    "error": 0,
+    "invalid": 8
+  },
+  "model_requests": 0,
+  "dialogue_cases": 0,
+  "all_temporary_namespaces_removed": true,
+  "category_counts": {
+    "1": {
+      "total": 4,
+      "pass": 4,
+      "not_run": 0
+    },
+    "2": {
+      "total": 4,
+      "pass": 4,
+      "not_run": 0
+    },
+    "3": {
+      "total": 8,
+      "pass": 0,
+      "not_run": 8
+    },
+    "4": {
+      "total": 4,
+      "pass": 4,
+      "not_run": 0
+    },
+    "5": {
+      "total": 7,
+      "pass": 7,
+      "not_run": 0
+    },
+    "6": {
+      "total": 4,
+      "pass": 4,
+      "not_run": 0
+    },
+    "7": {
+      "total": 7,
+      "pass": 7,
+      "not_run": 0
+    },
+    "8": {
+      "total": 3,
+      "pass": 3,
+      "not_run": 0
+    },
+    "9": {
+      "total": 3,
+      "pass": 3,
+      "not_run": 0
+    },
+    "10": {
+      "total": 4,
+      "pass": 4,
+      "not_run": 0
+    },
+    "11": {
+      "total": 3,
+      "pass": 3,
+      "not_run": 0
+    },
+    "12": {
+      "total": 2,
+      "pass": 2,
+      "not_run": 0
+    },
+    "13": {
+      "total": 1,
+      "pass": 1,
+      "not_run": 0
+    }
+  },
+  "natural_language_quality": "not_run",
+  "file_content_exact": {
+    "pass": 0,
+    "fail": 0
+  },
+  "browser_fixture": "synthetic, not a real Chrome end-to-end measurement",
+  "product_state_modified": false
+}

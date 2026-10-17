@@ -1,0 +1,40 @@
+{"id": "exact_name_1", "category": "exact_name", "title": "write_file", "query": "write_file", "relevant": ["write_file"]}
+{"id": "exact_name_2", "category": "exact_name", "title": "read_text_file", "query": "read_text_file", "relevant": ["read_text_file"]}
+{"id": "exact_name_3", "category": "exact_name", "title": "browser_view", "query": "browser_view", "relevant": ["browser_view"]}
+{"id": "exact_name_4", "category": "exact_name", "title": "move_file", "query": "move_file", "relevant": ["move_file"]}
+{"id": "exact_name_5", "category": "exact_name", "title": "search_files", "query": "search_files", "relevant": ["search_files"]}
+{"id": "keywords_1", "category": "keywords", "title": "overwrite content", "query": "overwrite content", "relevant": ["write_file"]}
+{"id": "keywords_2", "category": "keywords", "title": "recursive tree", "query": "recursive tree", "relevant": ["directory_tree"]}
+{"id": "keywords_3", "category": "keywords", "title": "metadata directory", "query": "metadata directory", "relevant": ["get_file_info"]}
+{"id": "keywords_4", "category": "keywords", "title": "浏览器 截图", "query": "浏览器 截图", "relevant": ["browser_view", "browser_send_image", "browser_crop_image"]}
+{"id": "keywords_5", "category": "keywords", "title": "点击 坐标", "query": "点击 坐标", "relevant": ["browser_click"]}
+{"id": "natural_language_1", "category": "natural_language", "title": "帮我把这段文字保存到一个文件里", "query": "帮我把这段文字保存到一个文件里", "relevant": ["write_file"]}
+{"id": "natural_language_2", "category": "natural_language", "title": "打开网页后填写表单", "query": "打开网页后填写表单", "relevant": ["browser_action"]}
+{"id": "natural_language_3", "category": "natural_language", "title": "看看我现在的网页写了什么", "query": "看看我现在的网页写了什么", "relevant": ["read_browser", "browser_action"]}
+{"id": "natural_language_4", "category": "natural_language", "title": "给我看看当前浏览器的截图", "query": "给我看看当前浏览器的截图", "relevant": ["browser_view", "browser_send_image"]}
+{"id": "natural_language_5", "category": "natural_language", "title": "把文件换个名字", "query": "把文件换个名字", "relevant": ["move_file"]}
+{"id": "paraphrase_1", "category": "paraphrase", "title": "persist a note to disk", "query": "persist a note to disk", "relevant": ["write_file"]}
+{"id": "paraphrase_2", "category": "paraphrase", "title": "relocate a document", "query": "relocate a document", "relevant": ["move_file"]}
+{"id": "paraphrase_3", "category": "paraphrase", "title": "inspect folder hierarchy", "query": "inspect folder hierarchy", "relevant": ["directory_tree"]}
+{"id": "paraphrase_4", "category": "paraphrase", "title": "抓取屏幕中的网页画面", "query": "抓取屏幕中的网页画面", "relevant": ["browser_view"]}
+{"id": "paraphrase_5", "category": "paraphrase", "title": "修改文本里的一行内容", "query": "修改文本里的一行内容", "relevant": ["edit_file"]}
+{"id": "cross_language_1", "category": "cross_language", "title": "读取文本文件", "query": "读取文本文件", "relevant": ["read_text_file"]}
+{"id": "cross_language_2", "category": "cross_language", "title": "创建文件夹", "query": "创建文件夹", "relevant": ["create_directory"]}
+{"id": "cross_language_3", "category": "cross_language", "title": "寻找匹配文件", "query": "寻找匹配文件", "relevant": ["search_files"]}
+{"id": "cross_language_4", "category": "cross_language", "title": "show current web page", "query": "show current web page", "relevant": ["read_browser", "browser_action"]}
+{"id": "cross_language_5", "category": "cross_language", "title": "send browser screenshot to chat", "query": "send browser screenshot to chat", "relevant": ["browser_send_image"]}
+{"id": "ambiguous_distractors_1", "category": "ambiguous_distractors", "title": "write file", "query": "write file", "relevant": ["write_file"]}
+{"id": "ambiguous_distractors_2", "category": "ambiguous_distractors", "title": "search files", "query": "search files", "relevant": ["search_files"]}
+{"id": "ambiguous_distractors_3", "category": "ambiguous_distractors", "title": "browser screenshot", "query": "browser screenshot", "relevant": ["browser_view", "browser_send_image"]}
+{"id": "ambiguous_distractors_4", "category": "ambiguous_distractors", "title": "read page", "query": "read page", "relevant": ["read_browser", "browser_action"]}
+{"id": "ambiguous_distractors_5", "category": "ambiguous_distractors", "title": "create directory", "query": "create directory", "relevant": ["create_directory"]}
+{"id": "multi_relevant_1", "category": "multi_relevant", "title": "read file", "query": "read file", "relevant": ["read_text_file", "read_file", "read_multiple_files", "read_media_file"]}
+{"id": "multi_relevant_2", "category": "multi_relevant", "title": "list directory", "query": "list directory", "relevant": ["list_directory", "list_directory_with_sizes", "list_allowed_directories"]}
+{"id": "multi_relevant_3", "category": "multi_relevant", "title": "截图", "query": "截图", "relevant": ["browser_view", "browser_send_image", "browser_crop_image", "browser_click"]}
+{"id": "multi_relevant_4", "category": "multi_relevant", "title": "rename", "query": "rename", "relevant": ["move_file"]}
+{"id": "multi_relevant_5", "category": "multi_relevant", "title": "text file", "query": "text file", "relevant": ["read_text_file", "read_file", "write_file", "edit_file", "read_multiple_files"]}
+{"id": "no_match_1", "category": "no_match", "title": "查询火星天气", "query": "查询火星天气", "relevant": []}
+{"id": "no_match_2", "category": "no_match", "title": "book a flight", "query": "book a flight", "relevant": []}
+{"id": "no_match_3", "category": "no_match", "title": "数据库迁移回滚", "query": "数据库迁移回滚", "relevant": []}
+{"id": "no_match_4", "category": "no_match", "title": "播放音乐", "query": "播放音乐", "relevant": []}
+{"id": "no_match_5", "category": "no_match", "title": "calculate mortgage interest", "query": "calculate mortgage interest", "relevant": []}

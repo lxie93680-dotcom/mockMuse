@@ -87,19 +87,21 @@ class ToolResultProcessor:
                 else:db.execute('INSERT INTO tool_originals VALUES (?,?,?,?,?,?,?)',(message_id,self.store.session_id,task,turn,call_id,name,raw))
                 db.commit()
         # Images stay typed; accompanying text shares the same character budget.
-        if isinstance(result,list) and any(getattr(x,'type',None)=='image' or type(x).__name__=='ToolOutputImage' for x in result):
+        if isinstance(result,list) and any((x.get('type') if isinstance(x,dict) else getattr(x,'type',None))=='image' or type(x).__name__=='ToolOutputImage' for x in result):
             from agents import ToolOutputText
-            texts=[x.text for x in result if isinstance(x,ToolOutputText)]
+            def is_text(x):return isinstance(x,ToolOutputText) or isinstance(x,dict) and x.get('type')=='text'
+            texts=[x['text'] if isinstance(x,dict) else x.text for x in result if is_text(x)]
             joined='\n'.join(texts)
             if len(joined)>MAX_CHARS:
                 prefix=f'完整原文ID：{message_id}\n' if self.store else ''
-                return [x for x in result if not isinstance(x,ToolOutputText)]+[ToolOutputText(text=prefix+head_tail(joined,MAX_CHARS-len(prefix)))]
+                return [x for x in result if not is_text(x)]+[ToolOutputText(text=prefix+head_tail(joined,MAX_CHARS-len(prefix)))]
             if self.store:
                 return result+[ToolOutputText(text=f'图片原文记录ID：{message_id}；原图保留，模型上下文可能省略历史图片。')]
             return result
-        try:value=json.loads(raw)
+        text=result.get('text',raw) if isinstance(result,dict) and result.get('type')=='text' else raw
+        try:value=json.loads(text)
         except (ValueError,TypeError):value=None
-        web=isinstance(value,dict) and ('html' in value or name in ('browser_action','read_browser') and ('text' in value or 'elements' in value))
+        web=isinstance(value,dict) and ('html' in value or name.rsplit('__',1)[-1] in ('browser_action','read_browser') and ('text' in value or 'elements' in value))
         context_text=raw
         if web:
             value=page_projection(value,self.focus)

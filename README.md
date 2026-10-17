@@ -34,7 +34,54 @@ uv run uvicorn muse.app:app --host 127.0.0.1 --port 8000 --loop asyncio
 
 真实模型任务示例：`打开 https://example.com，读取并用中文总结页面内容。`
 
-## 无影 Windows / Linux 部署
+## 操作系统适配与部署
+
+Muse 根据宿主操作系统选择命令、进程管理和浏览器路径。`muse status` 和 `/api/state` 的 `environment` 返回当前系统、shell 与能力限制。
+
+| 能力 | macOS | Linux | 原生 Windows |
+| --- | --- | --- | --- |
+| Web、CLI、远程 HTTP MCP、工具目录与搜索 | 支持 | 支持 | 已实现适配，待真实 Windows 验收 |
+| Chrome 扩展与 Playwright MCP | 支持 | 需图形桌面或无头浏览器 | 已实现路径、环境和 Node 启动适配，待真实 Windows 验收 |
+| 命令执行适配层 | zsh、进程组 | bash、进程组 | PowerShell、UTF-8、Job Object 进程树管理 |
+| Agent 文件读取和文本补丁 | 暂存＋原子目录交换 | 暂存＋原子目录交换 | Windows 10+：受控读取/补丁、冲突检查、备份和逐项写回；待实机验收 |
+| Agent 本地命令与 Filesystem MCP | 使用现有沙箱 | 需 bubblewrap | 命令沙箱未实现，继续禁用 |
+
+服务自动识别 Windows/macOS/Linux；Windows 额外读取 major/minor/build，Windows 10/11 选择日志写回实现，旧版本不开放本地文件事务。Windows 文件事务仅支持本机固定 NTFS 卷，开始任务前检查实际卷能力；macOS/Linux 保留原子目录交换实现。`muse status` 的 `environment.publication_mode` 展示选中的策略。
+
+Windows Agent 使用 `read_file` 分页读取暂存文本、`apply_patch` 修改暂存文本；原文件只由宿主最终写回。Agent 不会收到终端工具，外部 Filesystem 旧目录项也会被搜索、描述和调用过滤。低层 PowerShell 适配器不是 OS 写入沙箱，不提供 Agent 执行授权。远程 MCP 自身的能力仍由其服务端及现有启停/授权策略决定。
+
+Windows 写回流程：创建暂存副本 → 完成任务 → 检查原目录基线 → 冻结最终版本 → 锁定目录和受影响文件并重新校验 → 原文件移入备份 → 不覆盖已有目标地放入新文件 → 持久化提交回执。若其他编辑器抢先创建了目标，写回失败，保留用户文件；不自动合并。目录删除会在移动前后检查空目录，发现外部新增内容则尝试恢复。
+
+异常时按日志反向恢复；恢复同时校验内容和文件标识，遇到外部修改则保留现场并标记 `recovery_blocked`，不会强行覆盖。服务启动及下一次任务启动时检查未完成事务；恢复不重跑模型任务。备份与日志位于原目录旁的 `.<原目录名>-muse-win-transactions/<任务ID>/`，成功后保留 `backup/` 和 `transaction.json`，恢复失败时也保留 `files/`、`publication/` 等证据。没有自动清理备份或人工冲突解决界面。
+
+该策略保留原路径，但不是整目录原子提交：写回期间可能短暂出现新旧文件混合或单个目标缺失。日志包含文件数据刷盘与原子替换，进程中断恢复已通过模拟故障验证；尚未验证 Windows 实机和真实断电恢复，不承诺断电持久性。第一版拒绝重解析点（含 junction）、硬链接、NTFS 命名数据流、仅大小写重命名、文件/目录类型互换和已有目录权限更改；不能保留权限或无法获取独占句柄时停止。
+
+### 原生 Windows
+
+需要 Python 3.11+、uv、Node.js 22+，浏览器模式还需 Chrome 和相应扩展。在项目目录：
+
+1. 运行 `install-Muse.cmd` 安装 Python 与两个内置 Node MCP 的依赖；已有 `.env` 不会覆盖。
+2. 编辑 `.env` 配置模型。默认浏览器使用扩展连接；按本文扩展说明安装、授权。
+3. 双击 `start-Muse.cmd`，保持终端开启。已运行时只打开工作台；代码或配置变更后使用 `restart-Muse.cmd`。
+
+PowerShell 也可直接执行：
+
+```powershell
+# 可选：同时安装专用浏览器（仅 dedicated 模式需要）
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\muse-windows.ps1 -Action install -InstallBrowser
+# 自定义端口；自动同步 MUSE_PORT 到浏览器连接器
+.\start-Muse.cmd -Port 8001
+.\restart-Muse.cmd -Port 8001
+.\.venv\Scripts\muse.exe status
+```
+
+重启脚本先核对监听进程是否使用本项目虚拟环境 Python 和 `uvicorn muse.app:app`；其他程序占用端口时拒绝终止。Windows 重启会中断正在执行的任务，不提供任务自动续跑；需要保留执行结果时先等待任务完成。脚本不修改全局 PowerShell 执行策略。
+
+Node 不在 PATH 时可配置 `MUSE_NODE_EXECUTABLE=C:/Program Files/nodejs/node.exe`。专用浏览器自动查找 `%LOCALAPPDATA%/ms-playwright`，也支持 `PLAYWRIGHT_BROWSERS_PATH` 或 `MUSE_PLAYWRIGHT_EXECUTABLE` 显式路径（不包含包裹引号）。专用模式需支持扩展加载的 Playwright Chromium，不自动替换成普通 Chrome。扩展模式可使用 `MUSE_PLAYWRIGHT_CHROME_EXECUTABLE` 指定 Chrome。
+
+### Linux / 云电脑
+
+Linux 可执行 `bash start-Muse.sh`；macOS 保留原 `启动Muse.command`。Windows 本地文件工具受上述系统版本、卷类型与沙箱限制；云电脑仍需目标环境验收。
 
 1. 将项目复制到云电脑，安装 Python 3.11+ 和 uv，运行 `uv sync`。
 2. 安装普通 Chrome，按下方扩展安装步骤加载项目的 `extension/` 目录。
@@ -78,6 +125,16 @@ ssh -N -L 8000:127.0.0.1:18000 USER@RELAY_HOST
 uv run python -m unittest discover -s tests -v
 ```
 
+跨平台核心验证与可选的真实 Chromium/MCP 测试：
+
+```sh
+uv run python -m unittest tests.test_host_compatibility tests.test_muse_cli tests.test_remote_mcp tests.test_tool_access -v
+# macOS/Linux：真实浏览器测试，需先安装 vendor/playwright 依赖与 Chromium
+MUSE_RUN_BROWSER_SMOKE=1 uv run python -m unittest tests.test_host_compatibility.RealBrowserCompatibility -v
+```
+
+PowerShell 使用 `$env:MUSE_RUN_BROWSER_SMOKE='1'` 后运行相同 unittest 命令。`uv run python -m unittest tests.test_windows_workspace -v` 验证 Windows 写回协议，其中故障注入使用测试 IO 模型，Win32 独占句柄与实际写回测试仅在 Windows 执行。`.github/workflows/host-compatibility.yml` 包含三平台兼容性、Windows 文件事务和真实无头浏览器测试；添加 CI 不等于已执行成功。真实 Chrome 扩展附着、画面与人工接管仍需在目标系统手动验收。
+
 自动测试覆盖扩展连接鉴权、命令往返、断线取消、画面尺寸、Web 接管排他、模型适配和持久化；使用模拟扩展，不需要模型密钥。真实 Chrome 扩展须安装后手动联调：用 `/control-test` 验证点击、输入、拖动与滚轮，检查控制取消后停止。
 
 ## 切换模型
@@ -103,7 +160,7 @@ Web 输入框下方的供应商下拉框可切换 Kimi / DeepSeek / 自定义接
 
 ## Linux 文件与终端执行端
 
-Agent 新增 `linux_files`（list/read/write/mkdir/move）和 `linux_terminal`（Bash、退出码、stdout/stderr、1–60秒超时）。它们只调用独立 Linux 服务，不使用 Agent 宿主机的终端或文件系统，没有本地回退。未配置服务时明确报错。纯文件任务无需连接浏览器。
+独立 Linux 执行服务保留用于部署；当前 Agent 不注册 Linux 文件或终端工具，相关旧工具定义已移除。
 
 在**云端 Linux**安装 Docker 与 Compose 后，在项目目录执行：
 
@@ -119,38 +176,26 @@ docker compose -f deploy/compose.linux.yml up -d --build
 
 端口仅绑定云主机回环地址。跨机器使用 HTTPS 或 SSH 端口转发，不能直接公开该终端服务。执行端在非 Linux 系统拒绝启动。文件测试用临时目录和模拟平台，不执行本地终端；真实 Bash、容器资源限制、持久化和云端 Chrome 图形会话需部署后验收。
 
-## 本地文件工具
+## 本地工具
 
-`local_files` 支持 list/read/write/mkdir/move，默认工作目录为项目 `data/workspace/`；可通过 `MUSE_LOCAL_WORKSPACE` 指定独立目录。路径使用相对路径，拒绝越界、隐藏文件和符号链接，不提供删除工具。文本限256 KiB，写入默认拒绝覆盖，修改现有文件需明确指定 overwrite。此工具访问运行 Muse 服务的电脑，不调用 Linux 执行端，也不执行本地终端。示例：`在本地工作目录创建 notes/计划.txt，写入明天的任务，然后读取确认。`
+旧 `local_files` / `local_terminal` 入口及实现已删除。命令执行、文本补丁修改和图片查看使用下述原生内置工具；目录读写、搜索也可使用 Filesystem 外部 MCP。正式目标目录默认为 `data/workspace/`，可通过 `MUSE_LOCAL_WORKSPACE` 指定。Agent 实际在任务级隔离副本内修改，成功后由宿主一次提交。
 
-## 本地 macOS 模式新增工具
+- `browser_crop_image(x,y,width,height,scale)`：按 browser_view 原图像素坐标裁剪当前截图并发送聊天，scale为1–4。必须先看截图确认位置；放大不会增加细节。
 
-当前 Agent 仅注册本地文件/文档/终端和浏览器工具，不暴露 Linux 远程工具。
+正式 Agent 任务的文件写入仅允许目标目录的暂存副本；原有 `MUSE_LOCAL_ALLOWED_FILES` 不能扩大任务写入范围。要修改工作区外文件，需先将其纳入正式目标目录，而不是逐文件绕过暂存。
 
-- `browser_crop_image(x,y,width,height,scale)`：按 browser_view 原图像素坐标裁剪当前截图并发送聊天，scale为1–4。无需更新Chrome扩展。必须先看截图确认位置；放大不会增加细节。
-- `local_files` 新增 search（query搜索文件名/文本，最多100条结果）与 edit（将唯一query替换成content）。现有列目录、读写、建目录、移动保留。不提供删除工具。
-- `local_terminal(command,cwd,timeout)`：macOS使用 `/bin/zsh -f`，超时1–60秒；输出各限64 KiB；返回退出码与超时状态。工作目录默认 `data/workspace`，不继承服务模型密钥、不加载用户shell配置。以当前用户运行，**并非沙箱**，shell仍可访问用户有权限的目录。停止任务会终止同进程组子进程，不用于后台常驻服务。
-- `local_documents(action,path,content,overwrite)`：读取和创建 `.pdf`、`.docx`、`.xlsx`。生成Word/PDF使用纯文本，Excel使用二维JSON数组。读取文档限20 MiB；PDF最多30页，Excel最多10表、每表200行30列；文本结果限100000字符。不支持扫描件OCR、宏、Excel公式计算或旧版doc/xls格式。生成文档是基础内容布局，不能承诺出版级排版。
+## Filesystem 本地 MCP
 
-绝对文件路径需在 `.env` 的 `MUSE_LOCAL_ALLOWED_FILES` 内逐个授权，用系统路径分隔符分开。当前桌面hello.txt是单独授权，不等于开放整个桌面。
-
-## Desktop Commander + Filesystem 本地 MCP
-
-当前本地配置启用两套开源 stdio MCP，随 Muse 启动/退出自动创建和关闭 Node 子进程。无需 HTTP 端口、OAuth 或手动启动第二个终端。
+Filesystem作为外部stdio MCP随Muse启动/退出连接和清理；命令执行、文本补丁及图片查看使用Muse原生内置工具。Desktop Commander已移除。
 
 ```sh
-npm ci --prefix vendor/desktop-commander --ignore-scripts
 npm ci --prefix vendor/filesystem --ignore-scripts
-# .env：MUSE_DESKTOP_COMMANDER=1 和 MUSE_FILESYSTEM_MCP=1
+# .env：MUSE_FILESYSTEM_MCP=1
 ```
 
-版本固定为 Desktop Commander 0.2.52、Filesystem 1.0.0；依赖锁文件保存在各 vendor 目录。Node.js需要18+。首次安装需要网络；启动时使用本地安装包，不在线运行npx。安装跳过依赖脚本；需要额外原生组件的文档能力需另行验证。
+Filesystem版本固定1.0.0，Node.js需要18+。启动通过tools/list获取定义并缓存，模型通过tool_search/tool_describe/tool_call按需访问Filesystem工具。允许目录为`MUSE_LOCAL_WORKSPACE`（默认data/workspace），逐文件授权不会自动扩大为Filesystem目录权限；HOME位于data/mcp-home，子进程不继承模型密钥。启动失败显示错误，原生内置工具仍可使用。
 
-初始化后调用 tools/list 并缓存。SDK配置 include_server_in_tool_names，模型看到 `mcp_Desktop_Commander__...` 与 `mcp_Filesystem__...`，避免工具重名。基础文件任务优先 Filesystem；Desktop Commander只暴露终端会话及PDF/Excel相关读写共8项工具；配置权限、遥测、任意PID终止等工具不提供给模型。内置local_files/local_terminal不重复暴露，local_documents保留支持Word及其他文档回退，浏览器与区域截图工具保留。Chrome DevTools MCP未接入，浏览器仍通过现有扩展控制。
-
-工作目录为data/workspace。Desktop Commander独立HOME/config/log位于data/mcp-home，遥测关闭，子进程不继承模型密钥。Filesystem允许目录与Desktop Commander文件目录一致。之前单独授权的桌面hello.txt不会自动扩大成整个桌面权限，也不会自动成为Filesystem的授权目录。终端仍以当前macOS用户权限运行，文件目录限制不是终端沙箱。工具调用及返回状态写入Muse执行记录；MCP初始化失败会显示错误，不静默回退原工具。
-
-资料：[Desktop Commander](https://github.com/wonderwhy-er/DesktopCommanderMCP)、[Filesystem MCP](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem)。
+资料：[Filesystem MCP](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem)。
 
 ## 执行循环限制与预警
 
@@ -249,3 +294,340 @@ Playwright可访问性快照检测到可见的滑块/真人验证文字时，抛
 实时画面按需采集：有工作台观看者且任务running/needs_human或人工接管中才更新；任务结束、停止或出错且无人接管时停止画面采集，保留最后一帧。主动截图按钮仍可使用。
 
 评测中心：访问 `/evals`（工作台侧栏入口），只读聚合evals目录中的cases.jsonl及results目录下的results.json/jsonl、验证JSON。展示用例、历史运行、对比指标、状态筛选和case已有执行链路，每15秒自动刷新。缺少内部日志明确标注，不补造根因。API复用工作台认证，使用索引ID访问产物，禁止任意路径和符号链接。
+
+## 工具目录存储（第一阶段）
+
+`muse/tool_store.py` 提供独立 `ToolStore(path)` 存储层，可复用 `data/muse.db`。已接入启动和任务组装时的定义登记；按需搜索和调用见第五阶段，管理页面见第七阶段。
+
+- `tool_catalog`：工具稳定ID、来源、来源内稳定key、名称、描述、参数schema、启停及可用状态。元数据不保存连接、执行函数或凭据。
+- `tool_fingerprints`：对规范化的名称、描述、参数schema计算版本化SHA-256。对象键排序，数组顺序保留；启停与健康状态不参与哈希。工具ID独立于内容指纹。
+- `tool_catalog_fts`：独立持久化FTS5 trigram索引，支持名称、描述、参数和来源的字面关键词查询；不足3字符的查询使用子串匹配，支持中文。它不是语义搜索；实际权限与连接状态由后续注册层校验。
+- 注册批次事务更新工具、指纹和索引；内容未变只更新检查时间。刷新定义保留启停/可用状态，初始可用状态为unknown。`upsert_many`不是完整发现快照，列表缺失不表示删除。
+- `rebuild_index()`从工具表原子重建派生索引。启停缓存、通知/文件监听及移除对账见后续阶段说明；故障分类见第六阶段，产品工具页面见第七阶段。
+
+验证：`.venv/bin/python -m unittest tests.test_tool_store`。
+
+## 原生内置命令、补丁和图片工具
+
+`muse/native_tools.py`直接提供四个工具，MCP启停不影响注册，不属于Filesystem：
+
+- `exec_command(command, workdir='.', yield_time_ms=1000, timeout_seconds=60)`：macOS使用zsh，Linux使用Bash；先等待1–10000ms，命令仍运行则返回当前任务专属session_id。最长运行1–300秒。正式 Agent 任务由 harness 创建隔离暂存区，macOS 使用 Seatbelt 限制写入，Linux 使用 bubblewrap（未安装时拒绝命令，不回退）；采用精简环境，不继承模型密钥或加载用户 shell 启动配置。
+- `write_stdin(session_id, chars='', yield_time_ms=1000, terminate=False)`：继续读取输出或写入管道输入，可终止进程组。不是PTY，不支持依赖真实终端的程序。stdout/stderr各保留最近64 KiB，每次各返回最多6000字节，溢出明确标记；session_id为空表示已退出且输出已读完。任务完成、失败、停止或人工交还时清理命令进程组，不用于常驻后台服务。
+- `apply_patch(patch)`：支持`*** Begin Patch`/`*** End Patch`包围的Add File、Update File、Delete File。Update段以独立`@@`开头，使用唯一精确原文上下文；支持`*** End of File`。不支持行号、模糊匹配或Move to。每个文件和补丁上限2 MiB，UTF-8文本。补丁仅修改当前暂存副本；每次补丁不会同步正式目标。任务成功后，由宿主提交器统一发布完整最终版本。
+- `view_image(path)`：将本地PNG/JPEG/WebP/GIF图片作为真实视觉输入返回给模型；最多20 MiB/2500万像素，首帧缩略至最长边2048。此图不是浏览器截图，不能据其坐标点击网页。
+
+文件/图片路径和命令起始目录绑定任务暂存区，正式目标内的绝对路径由原生工具映射到暂存副本；任务中不接受工作区外的逐文件写授权。路径工具拒绝隐藏文件和符号链接。终端仅可写暂存文件与任务 scratch；macOS 另禁止硬链接、通用网络和应用控制，仅放行配置的本机 Muse API 端口以保留 CLI 管理链路。Linux bubblewrap 使用独立网络命名空间，暂不提供本机 CLI 网络桥接。子Agent禁止命令执行、会话输入和补丁修改，可继承只读图片查看。普通任务不因可选MCP/浏览器未就绪而预先拒绝，实际使用相应工具时才报告故障；演示模式仍检查浏览器连接。
+
+验证：`.venv/bin/python -m unittest tests.test_native_tools`；不调用模型API。
+
+## Muse Browser MCP（统一浏览器工具）
+
+所有模型可调用的浏览器能力统一由`muse/browser_mcp.py`提供，Agent内置列表不再重复注册浏览器/截图函数：
+
+- `browser_action`：网页打开/读取/点击/悬停/填写/选择/按键/滚动/等待及标签管理。
+- `browser_view`、`browser_click`：截图观察与坐标点击。
+- `browser_send_image`、`browser_crop_image`：当前页面截图发送、区域裁剪后发送到Muse聊天。
+- `read_browser`：专供只读场景的读取入口；子Agent可用此工具及browser_view，不能调用混合读写的browser_action或截图发送/裁剪。
+
+底层SDK兼容工具名带`mcp_Muse_Browser__`前缀；正常Muse任务通过第五阶段三个统一入口按需访问，不把这些函数逐项提供给模型。这是独立的MCP工具来源，不计为Muse内置工具；它使用MCP 2.x的真实client/server及进程内内存流，不新增HTTP端口或stdio子进程，目前不能作为一个独立进程接给其他客户端。共享宿主的浏览器、实时画面和聊天图片发布函数；底层Playwright MCP继续由浏览器生命周期管理，不重复向模型暴露原生工具。旧扩展后端也走同一工具门面。
+
+应用生命周期连接/关闭Browser MCP，单独调用run_agent时可自动创建并清理任务级连接。验证码/登录引发的人工交还保持原控制异常；跨MCP的调用保留任务诊断上下文及取消传播。request_human仍是Muse内置工具，实时画面与人工接管UI由宿主提供。工具目录已通过启动/任务组装登记到持久化存储；按需搜索见第五阶段；管理页见第七阶段。
+
+验证：`.venv/bin/python -m unittest tests.test_browser_mcp tests.test_demo tests.test_local_tools`。MCP协议及模拟浏览器/模型回环测试不等于真实网站端到端验收。
+
+
+## 工具定义登记
+
+`muse/tool_registration.py`仅将外部工具的真实名称、描述和完整参数schema写入工具表，事务生成/更新SHA-256指纹与搜索索引。Filesystem和浏览器分别为`mcp:filesystem`、`mcp:muse-browser`，均标记为外部MCP，共14+6=20项。9个内置工具完全由代码注册，不存储定义、指纹或索引。旧库中的builtin记录会在打开ToolStore时联动清理；存储接口拒绝新注册builtin来源。已移除的local_documents与Desktop Commander不登记。
+
+应用启动和任务组装时通过MCP tools/list登记外部定义，无需模型密钥或模型请求；不再为目录登记构建内置工具或模型客户端。相同定义保留ID/指纹、只更新检查时间，定义刷新不覆盖用户启停状态。失败来源保留已有记录并报告失败，不以空列表替代。来源未连接不等于工具已删除；仅成功完整发现快照中的缺失项按第三阶段标记missing，不硬删除历史记录。availability仍保持独立健康字段，不因有定义就认定后台浏览器可操作。
+
+注册持久化已接入；定义变化、重连刷新和移除对账见下方第三阶段。启停状态的执行拦截与7天缓存已接入（第四阶段）；tool_search见第五阶段；工具管理页面见第七阶段。
+
+## 统一动态注册接口（第二阶段）
+
+`muse/tool_registry.py`提供`ToolRegistry.register(provider)`和`register_all(providers)`，统一接收`ToolProvider.discover_tools()`返回的`ToolDefinition(key,name,description,parameters)`。内置工具不经过注册中心，也不写工具表。每个来源先完整发现与校验，再事务写入定义、指纹、索引；来源之间独立提交，失败来源保留原有数据。同一来源的并发注册串行处理，变更定义不覆盖用户启停选择；稳定key可在展示名称变化时保留tool_id。重复来源、重复key/名称、无效schema、超限定义均拒绝。源对象、连接、HTTP URL/headers等运行时信息不写入工具表；注册错误日志不输出可能含凭据的异常原文。
+
+`muse/tool_providers.py`包含三类适配器：
+
+- `MCPProvider(server)`：从真实MCP `tools/list`获取定义，Filesystem和Muse Browser的来源ID保持不变。
+- `ManifestProvider('plugin:example', path)`：读取JSON文件的`tools`数组，各项包含name、description和inputSchema（或parameters），可选key用于稳定身份；最多2 MiB，不导入或执行插件代码。
+- `HTTPToolsProvider('http:example', url, headers=None)`：GET获取同样的工具清单或OpenAPI 3 JSON。支持基本路径/查询/请求头/cookie参数和application/json请求体、非递归本地引用；不支持外部引用、循环引用、multipart等。认证headers仅保留运行时，不跟随重定向。请求超时可配置至30秒，响应最多2 MiB。只获取定义，不发送业务请求或执行工具。
+
+```python
+from muse.tool_registry import ToolRegistry
+from muse.tool_providers import ManifestProvider, HTTPToolsProvider
+
+registry = ToolRegistry('data/muse.db')
+await registry.register(ManifestProvider('plugin:example', 'plugins/example/tools.json'))
+# 注册配置中明确指定的HTTP定义来源：
+# await registry.register(HTTPToolsProvider('http:example', schema_url))
+```
+
+应用启动创建共享注册中心`muse.app.tool_registry`，启动与任务组装的MCP登记均走该接口。其他来源可通过同一异步接口动态登记；已支持MUSE_TOOL_SOURCES_CONFIG启动配置加载，目前没有来源安装配置UI，也不自动重建插件/HTTP业务连接。成功完整发现后按第三阶段规则对账缺失工具，支持通知/文件监听和连接恢复后的定义刷新；不自动恢复故障连接，也不把新插件/HTTP定义自动暴露给模型执行。内置工具仍由代码注册；正常任务的MCP按需访问方式见第五阶段。
+
+验证：`.venv/bin/python -m unittest tests.test_tool_registry tests.test_tool_registration`。
+
+
+## 工具定义刷新（第三阶段）
+
+- MCP：Muse拥有的Filesystem/Browser连接在连接成功及收到`notifications/tools/list_changed`时发出事件。注册中心合并短时间内事件，在后台失效SDK列表缓存并重新发现；不在通知回调内同步tools/list。刷新中再次收到通知会继续刷新，不丢失变化。不支持该通知的服务可手动刷新；没有实现自动重启故障MCP进程。
+- 插件文件：对已登记JSON定义文件每秒检查一次内容SHA-256，不监控业务文件。支持原子文件替换、删除/权限故障后恢复、无效JSON修正后恢复。读取/校验失败保留旧目录；不会把文件删除或解析失败当成空工具列表。首次发现失败的已配置来源也可在修复文件后自动恢复。
+- 重启：现有两套MCP在启动时重新发现。可通过`MUSE_TOOL_SOURCES_CONFIG`指向外部来源JSON配置，重启后重新加载并发现；插件path相对配置文件所在目录，HTTP认证headers只从headers_env指定的环境变量读取。新增/删除来源配置需重启或通过注册接口处理，本阶段不热加载来源配置文件本身。
+- 对账：成功完整快照中消失的工具保留目录记录、ID、指纹和启停选择，availability置为missing并从FTS索引移除；重现时恢复为unknown并重建索引，不自动启用。定义、指纹和索引更新在同一事务完成，失败整批回滚。重建索引同样排除missing项。
+- 手动刷新：经既有鉴权的`POST /api/tools/refresh`，JSON为`{}`刷新全部已配置/登记来源，或`{"source_id":"mcp:filesystem"}`刷新指定来源。未登记返回404，单来源失败返回503且保留旧数据。不会执行或重试任何业务工具调用；第七阶段页面已提供重新发现按钮。
+- 生命周期：注册中心退出时退订通知、取消文件监听和排队刷新。第五阶段接入后，模型持有稳定的三个入口，后续搜索/描述/调用可读取最新目录；不需要动态更换模型函数列表。
+
+来源配置示例（没有配置则仍只登记现有两套MCP）：
+
+```json
+{"sources":[{"id":"plugin:example","kind":"plugin","path":"manifests/example.json"}]}
+```
+
+验证：`.venv/bin/python -m unittest tests.test_tool_refresh`。实际源未变化时指纹保持不变，不会为刷新强制重写索引。
+
+
+## 启停写穿缓存（第四阶段）
+
+`muse/tool_enable_cache.py`管理外部工具的启停缓存，内置工具不入库且不在开关范围内。第一次读取时从DB完整加载，固定TTL为604800秒（7天），使用单调时钟；读取不续期。过期后下一次读取查询DB并重建，进程重启冷加载。启停操作先提交DB，再同步修改缓存对应条目，不清空缓存、不延长其他条目的TTL；DB写失败时不修改缓存。注册/移除/重现时将同事务内读取的来源状态合并到缓存，不延长完整快照TTL。对DB的外部直接修改可能等到过期或来源同步才反映，管理操作应使用注册中心接口。
+
+- `GET /api/tools/enabled`：经现有鉴权返回外部工具ID→布尔状态及缓存剩余秒数。
+- `POST /api/tools/{tool_id}/enabled`：JSON `{"enabled":false}`或true。严格布尔输入；未知ID返回404。该接口已接入第七阶段工具管理页面。
+- 第五阶段改为三个统一入口，外部工具搜索先按启停缓存与委派范围过滤，再限制条数；内置工具保持代码注册。
+- 每次真正调用MCP前再次检查启停及missing状态；父Agent和已复制的子Agent工具对象同样生效。子Agent工具清单也读取最新启停状态，原有只读权限限制保留。
+- 已经开始的调用不会因开关被强制中断，也不撤销已发生的修改。第五阶段启用后，进行中的任务再次搜索即可发现工具，无需动态新增函数schema。开关限制的是特定外部工具，不是宿主OS文件访问沙箱。
+
+验证：`.venv/bin/python -m unittest tests.test_tool_enable_cache`。7天过期通过注入时钟模拟，不是实际等待7天；无真实模型API调用。
+
+
+## 按需工具披露（第五阶段）
+
+主Agent模型仅接收内置工具和`tool_search`、`tool_describe`、`tool_call`三个统一入口。外部工具定义保存在目录中，不逐项加入初始模型工具列表。`tool_search(query, limit)`返回精简候选（ID、来源、名称、简介、是否具有执行器），不会返回完整schema或执行工具；查询先按启用/禁用缓存和本次授权范围过滤，再应用LIMIT。`tool_describe(tool_id)`返回当前完整JSON Schema及SHA256指纹。`tool_call(tool_id, arguments, fingerprint)`校验当前权限、指纹、参数和连接，随后执行；不符合schema、未知ID、已禁用、missing或过期指纹均不执行。参数验证支持本地schema引用，但不加载远程引用。
+
+MCP调用保留SDK的来源过滤、工具注解、审批策略以及图像返回；调用时检查来源当前定义与目录一致。要求审批的调用交还人工，配置专用工具guardrails的来源当前拒绝走通用执行路径，避免绕过SDK限制。JSON插件和HTTP/OpenAPI当前仅支持定义发现，没有实现业务执行器，描述返回`executable=false`，调用会明确报错。失败分类与重新发现见第六阶段，不自动重试业务调用。
+
+子Agent获得独立的三个入口，后端按原有只读排除列表裁剪外部工具，不能继承主Agent的通用调用权限。`list_subagent_tools`列出可委派工具的精简信息；选择外部工具时把`tool_id`作为`delegate_task.tools`条目，选择内置工具时使用其名称。省略tools继承允许范围，[]不提供工具，显式选择只能缩小范围。子Agent自身的搜索、描述、执行均检查该范围和启停缓存。
+
+共享应用注册中心支持任务运行期间新增、移除、启用或禁用工具；下次搜索/描述/调用读取最新目录和缓存，不重新拼接全部函数schema。单独调用run_agent且没有上下文存储时使用任务级临时目录，任务结束清理，不污染产品数据库。浏览器页面投影、原文归档、截图图片、人工交还和取消继续走原有处理。默认应用任务有9个内置工具及3个统一入口，实际数量取决于是否配置历史存储。
+
+验证包含临时数据库、内存MCP和本地HTTP模拟模型的搜索→描述→调用完整SDK循环，覆盖三种模型配置；未使用真实模型API或实测线上token/延迟收益。代码加载需要重启现有Muse服务。
+
+
+## 调用失败分类与重新发现（第六阶段）
+
+`muse/tool_failures.py`按异常类型及SDK异常因果链分类，不解析工具返回的任意文字来触发恢复。连接中断、超时、MCP method-not-found、当前来源定义与目录不一致或无过滤策略下工具消失，会触发受限的来源重新发现。普通业务错误（包括MCP isError）、参数错误、权限拒绝、人工交还与用户取消不会触发恢复；未知执行异常按执行错误处理，不假定为连接问题。
+
+重新发现复用注册中心来源适配器：MCP失效列表缓存后重新tools/list，插件清单重新读取，HTTP/OpenAPI重新GET定义；按完整成功快照对账，更新定义、指纹、索引和启停缓存中的来源条目，保留用户开关。没有调用业务方法、启动/重启外部进程或自动重放原业务动作。同来源并发失败合并为一个任务，自动发现每来源至少间隔5秒，单次预算5秒；失败保留旧目录，正常通知/文件监听/手动刷新不受自动恢复节流限制。
+
+模型收到结构化失败字段`category`、`stage`、`rediscovery`、`call_may_have_executed`和`business_call_retried=false`。执行阶段失败保守标记可能已执行，先核实结果；执行前失败明确尚未发出业务调用。`rediscovery=refreshed`仅代表目录更新成功，不能当作业务成功。错误输出不包含原异常中的地址、凭据或参数；人工交还和任务取消保持原控制流。
+
+恢复函数与来源类型无关；目前插件/HTTP仍无业务执行器，因此没有为其虚构业务重试能力。原生内置工具继续沿用原有退出码、超时和错误处理，不进入外部目录恢复。自动重新发现不承诺重建已断开的传输；确实断连且tools/list仍失败时明确返回failed，需来源宿主恢复连接或重启服务。验证使用临时DB、内存MCP、模拟异常和短预算时钟，无真实线上断网或自动进程重启测量。
+
+
+## 工具管理页面（第七阶段）
+
+主工作台左侧“工具”入口打开 /tools，展示所有持久化外部工具；内置工具不入库也不出现在该页面。页面显示工具数量、启用数量、来源数量，支持按名称/简介/来源搜索、按来源及启停状态筛选。已禁用或missing的工具仍保留在管理列表中，方便查看和重新配置；Agent工具搜索继续按启停缓存及授权范围过滤，二者用途不同。
+
+列表与详情通过现有鉴权读取：GET /api/tools 返回精简工具和来源列表，GET /api/tools/{tool_id}/detail 返回定义、参数schema与指纹。启停状态从同一启停缓存读取，避免页面使用DB旧状态而Agent使用缓存。POST启停接口提交DB并直接更新缓存，页面成功后同步状态与计数；保存失败保留原展示并报错。已有调用不会被撤销。
+
+“更新列表”仅重读管理数据；“重新发现”刷新选定来源或全部来源，沿用目录对账逻辑，不执行业务工具。部分来源失败时显示错误且保留旧定义。工具状态“未验证”不代表可用性已确认，“有定义”也不等于连接可用。详情允许查看禁用和已移除的定义，但不绕过Agent执行权限；工具内容以textContent展示，不执行来源提供的HTML。API沿用登录cookie、本机访问与跨来源写入校验。
+
+页面包含登录、空列表、无搜索结果、加载期间操作锁定、错误和部分刷新失败提示；支持窄屏布局，宽表在内部横向滚动。验证包括4项临时DB接口测试，以及ego-browser在独立临时Muse实例中的搜索、筛选、禁用、详情、重新发现后设置保留、重新启用、空结果和桌面/390px窄屏视觉检查。没有修改现有产品DB或实际外部工具状态；原运行服务需重启加载新增路由。
+
+
+## 整体验收（第八阶段，2026-10-16）
+
+本轮工具生命周期改造的本地验收已完成，范围与证据如下。这里的通过不等于真实模型、真实网站或生产故障恢复测试。
+
+| 项目 | 实现与验证 |
+| --- | --- |
+| 外部工具存储 | 稳定ID、版本化SHA256、独立FTS索引，事务更新；内置工具不入库 |
+| 动态注册 | MCP、JSON插件清单、HTTP/OpenAPI定义来源统一登记；失败保留旧快照 |
+| 刷新对账 | 通知、文件内容变化、重连、重启和手动刷新；缺失/恢复保留ID及开关 |
+| 启停缓存 | 固定7天、读不续期、开关写穿；搜索在LIMIT前过滤，调用再次校验 |
+| 按需披露 | 主Agent仅接收内置工具和三个统一入口；子Agent使用独立受限范围 |
+| 失败处理 | 类型分类、有界合并重新发现、不重放业务调用、明确可能已执行 |
+| 管理页面 | 所有外部工具、筛选、详情、启停和重新发现；前阶段已做桌面/移动端浏览器验收 |
+| 连接替换边界 | 新来源发现失败或被取消时保留旧连接调用拦截；新来源成功后旧连接工具对象拒绝调用，关闭时解除包装 |
+
+验收发现并修复了来源替换期间提前移除旧连接启停拦截的问题。通知订阅与业务调用权限绑定分别维护；同一运行时连接重复登记不累积包装，退役连接在注册中心生命周期内仍受拦截。新增5项跨阶段验收：失败替换、成功替换、发现中/取消、持久化重启后的搜索与指纹/索引/范围联动，以及已安装Filesystem MCP的真实stdio只读回环。后者只读取临时目录，验证20项目录（Filesystem14 + Browser6）以及禁用后的搜索/调用拦截；未安装Node或vendor依赖时该项会明确跳过。
+
+当前环境全量201项测试通过，无跳过。依赖锁检查、JS语法及diff空白检查通过。实际产品数据库以只读方式执行SQLite完整性检查，重算全部20项SHA256并核对FTS成员及重复项，结果通过；20项启停状态保持启用。一次初始手工只读回环因临时目录未解析macOS的/var符号链接被Filesystem拒绝，改为解析后的授权路径后通过；没有放宽工具路径限制。
+
+复现命令：MUSE_BROWSER_BACKEND=extension .venv/bin/python -m unittest discover -s tests。测试包含本地HTTP模拟模型和内存浏览器MCP；不调用真实模型API，不声称线上token、时延或准确率提升。JSON插件/HTTP目前仅支持定义发现，专用SDK guardrails工具拒绝通用执行，故障MCP不自动重启，来源配置文件本身不热加载；工具管理页需手动更新列表。现有运行服务尚未重启，需重启才能加载本轮代码。
+
+
+## 重启后的实际实例复验（2026-10-16）
+
+本次发现8000端口仍由10月15日启动的旧进程占用，旧运行态包含Desktop Commander且新工具接口返回404。启动脚本检测到已运行服务时只打开页面，并不重启；已明确脚本文案，并正常停止旧进程，按原.env加载新实例。新实例确认20项外部工具、Filesystem14 + Browser6，全部新管理路由可用，启动登记无错误；实际管理页面搜索、来源筛选、schema与指纹详情通过，手动完整重新发现返回变更/移除/恢复均0且无错误。
+
+独立验收会话中使用真实DeepSeek配置完成tool_search→tool_describe→tool_call→Filesystem list_allowed_directories，运行态事件记录三个入口均completed，原文归档标记实际来源；测试后切回原会话，保留验收会话供核对。真实浏览器读取暴露扩展尚未附着和MCP请求超时，本次没有把浏览器端到端操作判为通过。发现SDK的REQUEST_TIMEOUT和CONNECTION_CLOSED以MCPError错误码返回，分类器此前漏识别；已按SDK常量补齐，不靠异常字符串猜测，新增协议超时恢复回归测试。全量202项测试通过。浏览器实际连接与页面操作的复验结果另见当日调优记录。
+
+实际实例复验最终结果：文件MCP真实模型链路通过；浏览器read_browser和browser_view在扩展未附着时均超时，故浏览器正常读取/截图尚未通过。修复后两次实际失败均记录category=timeout、rediscovery=refreshed、business_call_retried=false，未自动重放。管理接口真实Host鉴权、写入Origin校验、未知工具404检查通过；验收后恢复原会话，20项开关保持启用。当前服务已加载本次修复，不再是旧进程。浏览器需要先完成扩展连接，再验收正常路径。
+
+## 浏览器连接恢复完成（2026-10-16）
+
+此前“浏览器未通过”结论已由本次实测更新：按原有官方扩展流程接回普通Chrome后，运行态browser_connected=true、connection_state=connected。真实DeepSeek模型在本地control-test页面通过三个统一入口完成read→fill→click→read→browser_view；DOM和实际JPEG截图均显示测试输入成功，工具完成事件无错误。用户原会话已恢复，业务网站未被修改。
+
+同时修复首次连接可能携带迟到业务动作的边界：扩展尚未附着时先用browser_tabs/list建立只读握手，成功后才派发导航、输入或截图请求。握手超时/取消时不派发原动作；重复使用已连接会话不额外握手。新增3项顺序、超时和取消测试，全量205项通过。代码已加载并完成真实验证。重启后官方扩展仍可能要求重新确认连接；本改动不绕过其授权流程。
+
+
+## 工具搜索与生命周期评测集（2026-10-16）
+
+evals/tool_lifecycle/cases.jsonl 定义7个用例，覆盖6类需求：工具删除前后搜索、禁用后直接搜索与对话查询、自然语言触发写文件和浏览器、热缓存更新后获取最新描述、新参数/指纹变更后重新描述执行、真实临时进程重启重新加载插件和HTTP来源。模型结论不作为唯一评分依据，检查实际搜索输出、描述原文、指纹、执行效果、权限缓存及进程重启后的持久化结果。同一对话保留历史，验证工具变化后模型不会仅依赖旧schema。
+
+搜索实现仍是SQLite FTS5 trigram，名称/描述/参数/来源字面检索，多关键词AND，BM25排序；短词走子串匹配。没有embedding、向量数据库或向量相似度。自然语言发现依赖模型把任务转成搜索关键词，并非底层语义检索。
+
+运行命令：
+
+    .venv/bin/python -m evals.tool_lifecycle.run
+    .venv/bin/python -m evals.tool_lifecycle.run --live --provider deepseek
+    .venv/bin/python -m evals.tool_lifecycle.run --live --provider deepseek --cases disable_visibility schema_reload
+
+默认离线不调用模型；自然语言两项标为invalid/requires-live，不伪称通过。--live才使用当前配置的真实模型；每次创建新的results目录，不覆盖历史。run.json记录代码/用例/依赖锁哈希和不含凭据的模型信息，results.jsonl保存每项步骤和失败，summary.json汇总。评测中心动态扫描新用例和运行产物。
+
+每个用例使用独立临时DB、MCP来源和文件，finally恢复函数定义与开关并核对；新工具按真实产品语义保留missing墓碑，临时目录最终整体删除。真实重启案例启动/停止临时Muse进程，停止后修改插件和HTTP清单，再启动检查新内容、稳定ID及禁用状态，最后恢复原来源并再次启动确认。异常也会关闭子进程、HTTP服务并删除临时命名空间。不会改生产工具、配置、数据库、Chrome或当前对话。故障注入测试覆盖修改后失败仍恢复、模型口头“保存”不能代替文件效果，以及重复运行。
+
+自然语言写文件使用已安装Filesystem MCP的原始英文定义和临时授权目录，不靠中文合成工具凑通过；浏览器案例使用真实内存MCP协议和合成浏览器，只测工具选择及调用，不等同真实Chrome页面操作验收。写文件主评分检查真实工具触发、实际文件存在且含目标文字；逐字精确度另列指标，额外换行/字符不会被隐藏或声称精确通过。
+
+已执行多轮并保留失败结果：live-2暴露普通文本返回被误按JSON解码，以及“搜索探针”提示被理解为网页搜索；修正评测器并明确生命周期用例查询工具目录。live-3核心6/7，写文件已触发但字节比较失败；按照本次“能否触发工具”目标拆分工具触发与逐字精确度，保留差异。最新live-4核心7/7，真实模型36次请求；文件精确度0/1，尾部额外字符仍明确记录。此结果不是全面语义检索能力或内容生成完全正确的证明。
+
+本次全量212项测试通过。离线评测在回归测试中连续运行两轮，清理均通过。生产20项工具定义、参数、ID、可用状态和启停与评测前快照逐项一致，浏览器保持连接；未为新增评测重启当前服务。
+
+## 工具评测扩充至54项（2026-10-16）
+
+工具生命周期评测现为54项、13类；上节7项是扩充前的历史结果。
+
+| 类别 | 项数 | 主要变体 |
+| --- | ---: | --- |
+| 删除与恢复 | 4 | 删除、空快照、禁用后恢复、多次删除恢复 |
+| 启停过滤 | 4 | 对话与直接搜索、全部禁用、LIMIT前过滤、反复切换 |
+| 自然语言触发 | 8 | 写文件中英文/Unicode/不同措辞；浏览器中英文/标题/只读 |
+| 缓存 | 4 | 更新、固定TTL到期、DB写失败、未变化注册 |
+| 定义变化与通知 | 7 | 参数增删、描述变化、通知合并、刷新中通知、取消 |
+| 重启 | 4 | 内容更新、未变化、空定义、稳定键重命名 |
+| 搜索边界 | 7 | 中文短词、短英文、引号、多词AND、无匹配、数量限制、大小写 |
+| 来源隔离 | 3 | 同名工具跨来源、替换失败、替换成功后旧连接拒绝调用 |
+| 指纹 | 3 | 对象键顺序、启停独立、数组顺序变化 |
+| 故障恢复 | 4 | 传输错误、业务错误、并发恢复合并、发现失败保留快照 |
+| 子Agent权限 | 3 | 禁止工具、显式范围/空范围、搜索后禁用 |
+| 存储与索引 | 2 | 索引重建、内置工具拒绝入库 |
+| 参数校验 | 1 | 缺必填、类型错误、多余字段，不产生执行效果 |
+
+支持按类别选择和重复执行，例如：
+
+    .venv/bin/python -m evals.tool_lifecycle.run --category 7 --repeats 2
+    .venv/bin/python -m evals.tool_lifecycle.run --live --provider deepseek --category 3 --repeats 2
+
+expanded-offline-2：46项通过，8项自然语言用例明确标为需真实模型；expanded-live-1：54项核心检查通过，其中19项经过真实对话，共89次模型请求。4项写文件均真实触发并包含目标文字，逐字精确度另计为2通过、2不通过，具体差异保留在结果。浏览器仍为合成浏览器，不代表真实Chrome端到端结果；故障与生命周期变更也为隔离测试场景。
+
+全量214项回归通过。评测结束全部临时命名空间删除；生产20项工具的定义、参数、ID、可用状态和启停与评测前快照一致，浏览器保持连接。评测中心已显示54项及本轮结果。每次运行使用新结果目录并独立恢复，不覆盖历史；测试同时验证重复运行、分类筛选和未知用例不能静默通过。
+
+## 评测中心区分能力评测与系统测试（2026-10-16）
+
+评测中心现在以“能力评测”“系统测试”分别展示集合、统计及运行记录，不合并两类通过率。原tool_lifecycle的54项及全部历史运行归入系统测试（包括模型辅助的生命周期场景），原目录/历史产物保留。protocol.json的suite_type决定分类；未标注的旧集合默认能力评测，旧compression设计回归归系统测试。当前已启动的旧API也可由页面按已知集合兼容分类，加载新页面即可查看，无需为了分类重启浏览器连接。
+
+新增tool_search能力评测：固定生产20项工具定义快照，加8项合成干扰工具；40条人工二元标注查询，8类各5项：工具名、关键词、自然语言、同义表达、跨语言、干扰项、多相关工具、无匹配。直接使用真实ToolAccess.search及启停缓存路径，原始查询不经模型改写，不执行业务工具；快照不会静默随生产变化。标注是当前版本的相关工具集合，并非完整真实用户分布。
+
+    .venv/bin/python -m evals.tool_search.run
+
+每次新目录保存查询、相关标注、实际候选和排名、各项分数、分类汇总及源码哈希。正向35条分别计算Hit@1/3/5、Recall@5、MRR@5、Precision@5；无匹配5条单算正确返回空的比例，不混进正向指标。Precision分母为实际返回候选数（最多5）。逐条pass仅表示Top5命中至少一个相关工具，不能代替完整召回指标或任务完成率。
+
+baseline-1实测：Hit@1=42.9%，Hit@5=51.4%，Recall@5=49.0%，MRR@5=46.7%，Precision@5=44.6%；5条无匹配查询全部正确返回空。自然语言、同义表达、跨语言三组Hit@5均为0，保留失败，不调整标签去凑分。它测量原始查询的检索器效果，不等于实际Agent经过关键词改写后的发现效果；后者需另设独立实验。本轮未修改检索算法，也不声称线上质量提升。
+
+## 本人标注搜索相关性（2026-10-16）
+
+入口：评测中心 → 能力评测 → 工具搜索效果 → 本人标注。逐条阅读查询，在全部28项工具（含干扰项）中多选相关工具，或明确勾选“此工具库中没有合适工具”；可查看工具描述和参数、筛选工具、填写备注、保存草稿或确认并进入下一条。支持按待标注/草稿/已确认筛选及中途退出后继续。默认不勾选工具，原始自动标注折叠显示供参考，不能算本人确认。
+
+人工标注独立存于evals/tool_search/annotations.sqlite3（本地文件，Git忽略），每次保存追加版本；不会覆盖cases.jsonl中的自动标注、原始用例或历史成绩。保存需要当前查询/工具快照哈希及上一版本号，陈旧页面返回409而不覆盖；数据集变化后旧标签仍保留在历史表，但不自动作为当前版本已确认标签使用。数据沿用Muse访问鉴权和跨来源写入限制。
+
+使用本人已确认标注重跑：
+
+    .venv/bin/python -m evals.tool_search.run --labels human
+    .venv/bin/python -m evals.tool_search.run --labels human --allow-partial
+
+第一条要求40条全部确认；第二条仅计入已确认部分并标记partial，草稿不参与。默认不带--labels仍为generated自动标签，页面会明确显示“自动生成标注（未经本人确认）”。人工运行会固化labels.json及标注哈希，后续改标不会改变旧成绩。当前功能不在网页里启动评测，不新增模型调用；标注为相关/不相关二元标签，不包含分级相关度或多人审核。所有具有当前Muse写权限的访问者都可标注，不能用来证明登录者的独立身份。
+
+## 运行任务初评与人工复核（2026-10-16）
+
+与参考答案标注不同，复核入口在“评测中心→选择一次运行→点击任务表格行”。任务表显示任务、运行方式、原始状态、初评分、人工复核分数、耗时和调用数；支持未复核/已复核/人工改分/初评待评筛选。评测集用例改为表格；任务详情用分数卡、预期与实际候选排名表、评分理由、执行步骤及复核表单展示，原始JSON仅作折叠排查资料。汇总与配置也提供格式化字段表。
+
+初评为可复现的规则初评，不是另一个模型的主观裁判：搜索正向查询用Recall@5×100并单列首个相关排名、MRR、Precision和未召回项；负向查询按是否正确返回空记100/0。生命周期仅按系统断言给100/0；浏览器沿用任务判定并检查误点；压缩沿用严格正确判定。运行异常、无效样本、未知规则或不足证据标待评，不能算能力零分。搜索参考标签尚未经本人审核的局限仍保留，初评分也继承此局限。两类任务分数和搜索正负样本不合成一个总分。
+
+可以认可初评、改为0–100分或标记证据不足；改分/证据不足要求理由。保存使用乐观锁，所有复核追加历史；不改原始产物、参考标签或初评分，不重跑任务、不调用模型。初评和复核存于本地evals/run-reviews.sqlite3（Git忽略），绑定运行文件内容SHA256、行号和规则版本；原始文件变化后旧复核保留但不套用新结果。新运行在评测中心读取时生成并固化初评。规则代码改动须升级规则版本，避免把新规则冒充旧分数。
+
+本次为已有382条运行任务生成初评：363条有分、19条待评、0条正式人工复核。无逐条结果的基础设施记录不强行生成分数。全量230项测试通过；隔离页面验证了表格展示、初评分与改分并列、改分后关闭重开持久化、人工改分筛选及40条用例表格。没有在正式数据上冒充用户复核。所有有Muse写权限的访问者均可复核，没有新增多用户审核身份体系。
+
+### 远程 MCP 设置
+
+从会话侧栏进入「MCP 设置」（`/settings/mcp`），填写唯一服务名称和 HTTPS MCP URL，点击「添加并连接」。首版支持 Streamable HTTP、无鉴权或 Bearer Token；需要 Token 时，页面填写服务端环境变量名，实际值在 `.env` 中配置后重启 Muse。暂不支持 OAuth、SSE、带查询参数的 URL，以及页面编辑/删除服务。
+
+配置保存在数据目录的 `remote-mcp.json`，仅保存地址和 Token 环境变量名。启动时自动恢复连接；连接失败会保留配置，可点击重试。成功完成工具发现和目录注册后才显示已连接，工具定义存入现有 `muse.db` 工具目录，通过已有搜索、描述、调用入口使用，无需独立 MCP 网关。运行中连接/超时故障会触发会话清理和重建，每 30 秒通过工具目录刷新检查空闲连接；失败后按 30 秒至 10 分钟指数退避重试。页面每 5 秒更新连接状态，手动重试会立即重建会话。目录和工具启停设置保留，失败的业务调用不会自动重放。
+
+### 对话接入远程 MCP（内置 Skill）
+
+Muse 内置 `install-mcp` Skill。用户提出接入请求后，主 Agent 可先 `skill_read("install-mcp")`，再通过 `manage_mcp` 的 `list` / `add` / `connect` 操作复用设置页的连接管理器。完整指引按需读取，不全量注入提示词。该管理能力不下放给只读子 Agent。
+
+例如：「帮我接入这个远程 MCP，名称 travel，地址 https://服务商域名/mcp，Token 环境变量 TRAVEL_MCP_TOKEN。」地址必须由用户提供或在服务商资料中核实；仅有服务名称时不能猜 URL。成功注册后，工具可在同一任务中通过 `tool_search`、`tool_describe`、`tool_call` 使用。此 Skill 不安装本地软件或 stdio 服务，不读取凭据，不支持 OAuth。返回 `saved` 表示配置保存，`ready` 表示连接和工具注册完成，两者需区分。
+
+## 浏览器工作区按实际使用展开（2026-10-16）
+
+主界面默认聊天布局，右侧浏览器不预先展开。只有Muse Browser MCP实际执行浏览器工具（含读取、截图、点击、截图发送/裁剪）时才通知界面展开；工具目录发现、搜索或描述不会触发。手动点击顶部“打开浏览器”、演示及人工接管也可显式启用。收起后新的浏览器调用可以重新展开。浏览器未连接时显示等待扩展确认及错误提示，不把MCP进程已就绪误写为Chrome已连接。
+
+普通任务不启动截图流；有浏览器使用且任务运行中、等待人工时才采集，人工接管也可保持采集。任务结束后停止持续采集，并保留最后实际画面；成功任务完成前补一帧，截图失败单独提示而不抹掉业务结果。聊天布局中执行记录移至聊天区的折叠面板，浏览器布局中放回右侧。
+
+每次新任务清空浏览器使用标记、旧画面和地址；新会话默认关闭，历史会话保存其实际浏览器使用标记，切换时仍清空旧画面。帧带会话/任务ID，界面忽略不匹配的迟到帧；未启用工作区时后端也丢弃迟到帧。没有关闭浏览器/MCP或改动工具定义，只按需展示和采集。
+
+全量249项测试通过；新增发现不触发、普通任务/陈旧接管不采集、最后一帧仅在实际使用时获取、迟到帧过滤及会话恢复检查。ego-browser在隔离合成浏览器上通过真实内存MCP验证普通任务→浏览器调用→普通任务的布局/画面变化并检查截图；不等于本次重新验收真实Chrome扩展连接。正式服务已加载；当前官方扩展未附着时，首次实际使用仍需按提示完成连接确认，不绕过其授权步骤。
+
+## Muse CLI与内置使用Skill（2026-10-16）
+
+当前管理路径为“读取muse-usage Skill→exec_command执行muse CLI→当前服务API→共用连接管理器/工具注册中心”。专用manage_mcp及其安装Skill运行时读取门禁已移除；通用skill_read保留。旧install-mcp名称兼容读取新版说明，但不再有单独的安装管理工具。上一节会话Skill读取状态表保留历史数据，当前不再依赖它阻止CLI执行。
+
+唯一使用说明位于[muse-usage Skill](muse/skills/muse-usage/SKILL.md)，CLI的muse docs和muse skills read读取同一文件。Agent启动只注入简短Skill名称/描述及入口，按需读取全文；不把完整CLI文档重复塞入每轮规则。
+
+项目已增加可安装console入口。项目目录执行uv sync --locked --inexact后，可用uv run muse，或激活.venv后用muse；Agent命令环境已将当前Python环境bin加入PATH，任意授权工作目录均可调用，不需要暴露服务商密钥。也支持python -m muse.cli。
+
+    uv run muse --help
+    uv run muse docs
+    uv run muse status
+    uv run muse mcp list
+    uv run muse mcp add microsoft-learn --url https://learn.microsoft.com/api/mcp
+    uv run muse mcp connect microsoft-learn
+    uv run muse tools search microsoft_docs --limit 5
+    uv run muse tools list
+    uv run muse tools describe TOOL_ID
+    uv run muse tools disable TOOL_ID
+    uv run muse tools enable TOOL_ID
+    uv run muse tools refresh
+
+CLI不直接写remote-mcp.json，不创建离线的第二套注册器；服务不在线时明确失败。add由现有服务原子保存配置，再建立连接并登记工具；同一运行服务和当前Agent共用目录立即可见。新/api/tools/search复用ToolAccess和启停缓存，先过滤再LIMIT；管理list仍包含禁用/缺失工具，二者用途不同。业务执行继续使用现有三个工具入口及其权限/指纹校验。
+
+结果默认JSON，help/Skill为文本；0代表操作正常完成，1代表API/连接等错误，2可表示保存但未连接或刷新存在错误（也用于命令语法错误）。必须检查saved/ready，不把配置保存或后台重连当作业务成功。凭据只用服务端环境变量名；CLI不读取.env，访问口令从CLI自身进程环境变量读取，本机沿用现有鉴权。默认127.0.0.1:8000，可用MUSE_URL/MUSE_PORT或--server覆盖；不向非本机HTTP地址发送请求，不跟随重定向。
+
+
+## 任务文件暂存与最终提交
+
+每次正式 Agent 任务由宿主创建 `<正式目录的父目录>/.<目录名>-muse-transactions/<任务标识>/`：`files/` 是独立可编辑副本，`scratch/` 用于进程 HOME/TMPDIR，`transaction.json` 和 `task.lock` 是 Agent 不可写的宿主事务控制。正式目标在终端沙箱中只读；Filesystem MCP 按任务启动，同样仅获准暂存目录并受系统沙箱限制，任务结束前关闭。补丁、命令及文件 MCP 不逐次写回正式目录。
+
+任务成功并停止命令/文件服务后，宿主计算最终内容、检查正式目标基线，将暂存结果复制到 Agent 不可写的 `publication/` 并校验内容。这避免持有暂存文件句柄的残留进程修改发布内容。最终只调用一次 macOS `renamex_np(RENAME_SWAP)` 或 Linux `renameat2(RENAME_EXCHANGE)`，将完整 publication 目录与正式目录原子交换；不支持原子交换或跨文件系统时拒绝提交，不降级为逐文件覆盖。无变更任务不交换目录。原子可见性限于目录路径切换；已打开的外部文件句柄仍指向旧 inode。
+
+提交以持久化 commit_id 和 prepared/committed 回执防止同一任务重复交换；启动新任务时核查 prepared 事务，识别“交换完成但回执未落盘”和“尚未交换”，不盲目重放。新旧版本无法匹配时阻止新任务并要求处理。发生外部修改冲突时保留暂存且拒绝覆盖；基线检测为乐观校验，外部写入者仍应在发布期间暂停写入，或遵循同一宿主锁。
+
+失败/取消不提交，人工暂停保留同一任务的暂存副本供恢复；异常退出留下的 staged 事务也可在取得任务锁后按原任务恢复；暂停期间正式目录变化则拒绝恢复。成功后清理工作副本和旧版本，保留提交回执；失败与冲突副本保留用于恢复，目前没有自动清理策略。暂不支持工作区外独立文件的合并提交，源目录中硬链接/特殊文件会拒绝暂存，新增或修改的符号链接拒绝发布。目录复制和最终快照会增加磁盘与启动开销，未测量性能。
+
+验证：`.venv/bin/python -m unittest tests.test_staged_workspace`。覆盖真实 macOS 终端隔离、实际 Filesystem MCP 暂存写入、整批交换、冲突、暂停、提交回执恢复、重复提交与旧句柄隔离；不调用真实模型 API。
+
+
+暂存回归补充（2026-10-16）：事务校验目标目录、commit_id 和持久化指纹版本，失去任务锁的旧对象不得提交或中止恢复后的任务。Agent 命令和补丁入口必须绑定当前活跃暂存事务，关闭后不可再次调用。初始复制中断可重建未完成副本；提交复制失败、磁盘写满、fsync 失败及内容变化均拒绝发布。版本 2 指纹包含所有者、权限、文件 flags、扩展属性和 macOS ACL；macOS 使用系统 ditto 保留元数据，历史版本 1 回执仍可读取。
+
+补充测试覆盖：初始复制失败重试、staged 异常恢复、旧句柄失效、事务身份篡改、无 harness/跨任务/关闭后的工具调用、锁竞争、重命名/删除/二进制/空目录/执行权限、扩展属性与 ACL、外部元数据冲突、提交副本篡改、prepared 两种恢复分支和不确定状态阻断、硬链接/FIFO/特殊权限拒绝、沙箱缺失时拒绝启动。磁盘和崩溃故障使用注入模拟；终端、文件 MCP、扩展属性、ACL 与原子交换在当前 macOS 实际执行。Linux、真实断电恢复、海量文件性能仍未实测；自动清理和恢复管理界面尚未实现。
+
+
+远程 MCP 卸载：`muse mcp remove SERVER_ID`（别名 `muse mcp uninstall SERVER_ID`），调用鉴权的 `DELETE /api/mcp/{server_id}`。原子移除配置后停止连接/重连，注销执行器，将工具目录标记 missing 并同步索引和缓存；历史工具 ID 和启停偏好保留。重复卸载幂等，其他服务与服务端环境变量不受影响。启动时补齐配置已删除但工具目录尚未清理的中断卸载。当前不提供撤回远端已开始业务操作的保证。
+
+
+工具目录服务关联：数据库 schema v2 在 tool_catalog 持久化可空的 server_id。远程 MCP 的值严格使用 remote-mcp.json 的服务 key，注册/重连时写入；启动时先根据已有配置回填旧工具记录，即使远端连接失败也可查到关联。来源未知或非远程 MCP 为 null，不从展示名称猜配置。tool_search 候选、tool_describe、管理列表/详情及来源列表均返回 server_id；CLI 支持 `muse tools list --server-id travel` 和 `muse tools search hotel --server-id travel`，搜索在 LIMIT 前按服务及权限过滤。用返回值可直接定位 remote-mcp.json[server_id]；本次不增加业务调用失败后的自动补建或重放。卸载后 missing 历史记录仍保留 server_id。迁移不更改 tool_id、参数指纹、启停偏好或可用状态。
+
+
+Skill发现与读取（2026-10-17）：skill_list统一扫描内置muse/skills和安装user/skills下的SKILL.md，返回skill_id/name/description/source。skill_read(name, path='SKILL.md')按需返回正文或包内UTF-8引用资料，最多256 KiB；builtin/name和installed/name区分同名来源，短名歧义报错；旧install-mcp兼容读取builtin/muse-usage。每次扫描实际目录，不依赖内存/DB目录，不执行脚本或自动连接MCP。CLI muse skills list/read支持两类及--path，muse docs仍只读内置说明。头部使用安全YAML解析，校验name/description和非空正文；拒绝链接、隐藏路径和越界读取。此轮仅实现list/read，不含安装/更新/启停/卸载管理或语义search；已经进入对话的旧文本不会因磁盘删除自动撤回。

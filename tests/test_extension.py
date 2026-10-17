@@ -39,7 +39,7 @@ class TransportTests(unittest.IsolatedAsyncioTestCase):
 class ExtensionSocketTests(unittest.TestCase):
     def test_image_messages_are_persisted_and_require_authentication(self):
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {
-            'MUSE_DESKTOP_COMMANDER':'0', 'MUSE_FILESYSTEM_MCP':'0', 'MUSE_BROWSER_BACKEND':'extension','MUSE_DATA_DIR':directory,'MUSE_ACCESS_TOKEN':'test-access'}):
+            'MUSE_FILESYSTEM_MCP':'0', 'MUSE_BROWSER_BACKEND':'extension','MUSE_DATA_DIR':directory,'MUSE_ACCESS_TOKEN':'test-access'}):
             import muse.app as module
             module = importlib.reload(module)
             with TestClient(module.app) as client:
@@ -57,7 +57,7 @@ class ExtensionSocketTests(unittest.TestCase):
 
     def test_auth_commands_frame_dimensions_and_disconnect(self):
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {
-            'MUSE_DESKTOP_COMMANDER':'0', 'MUSE_FILESYSTEM_MCP':'0', 'MUSE_BROWSER_BACKEND':'extension','MUSE_DATA_DIR':directory,'MUSE_ACCESS_TOKEN':'test-access'}):
+            'MUSE_FILESYSTEM_MCP':'0', 'MUSE_BROWSER_BACKEND':'extension','MUSE_DATA_DIR':directory,'MUSE_ACCESS_TOKEN':'test-access'}):
             import muse.app as module
             module = importlib.reload(module)
             origin = {'origin':'chrome-extension://'+'a'*32}
@@ -89,6 +89,7 @@ class ExtensionSocketTests(unittest.TestCase):
                         extension.send_json({'type':'result','id':command['id'],
                             'result':{'title':'fixture','width':1600,'height':900}})
                         self.assertEqual(future.result(timeout=5)['title'],'fixture')
+                        client.portal.call(module.use_browser_workspace,'read_browser')
                         module.browser.on_frame = module.broadcast_frame
                         extension.send_json({'type':'frame','data':'/9g=','url':'https://example.com',
                                              'width':1600,'height':900})

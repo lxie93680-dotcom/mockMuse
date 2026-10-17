@@ -24,6 +24,7 @@ def normalize(value):
     if isinstance(value,str):
         try: return normalize(json.loads(value))
         except (ValueError,TypeError): return value.replace('\r\n','\n').replace('\r','\n').strip()
+    if isinstance(value,dict) and value.get('type')=='text' and isinstance(value.get('text'),str):return normalize(value['text'])
     if isinstance(value,dict):return {str(k):normalize(v) for k,v in value.items()}
     if isinstance(value,(list,tuple)):return [normalize(v) for v in value]
     return value
@@ -88,15 +89,23 @@ class LoopGuard:
         original=tool.on_invoke_tool
         tool._muse_original_invoke=original
         def on_error(ctx,error):
-            if isinstance(error,LoopStopped):raise error
+            cause=error
+            seen=set()
+            while cause is not None and id(cause) not in seen:
+                if isinstance(cause,LoopStopped):raise cause
+                seen.add(id(cause))
+                cause=cause.__cause__
             call_id=getattr(ctx,'tool_call_id',None) or str(id(ctx))
             duration=time.monotonic()-self.tool_started_at.get(call_id,time.monotonic())
             arguments=getattr(ctx,'tool_arguments',None)
             if self.diagnostics:self.diagnostics.emit('error',tool.name,call_id,arguments,error=error,duration=duration)
             else:self.record('工具原始错误',tool.name+' · '+type(error).__name__+': '+safe_text(error))
             output=json.dumps({'_muse_tool_error':True,'error_type':type(error).__name__,'message':safe_text(error),'tool_name':tool.name,'tool_call_id':call_id},ensure_ascii=False)
+            from .tool_failures import ToolCallFailure
+            if isinstance(error,ToolCallFailure):
+                output=json.dumps({**json.loads(output),**error.details},ensure_ascii=False)
             # Persist evidence BEFORE the third failure aborts the SDK invocation.
-            processed=self.result_processor.process(tool.name,arguments,output,call_id) if self.result_processor else output
+            processed=self.result_processor.process(getattr(ctx,'_muse_result_tool_name',tool.name),arguments,output,call_id) if self.result_processor else output
             if self.checkpoint:self.checkpoint.tool_output(call_id,processed)
             self.observe(tool.name,arguments,json.loads(output))
             return processed
@@ -112,7 +121,7 @@ class LoopGuard:
             trace_token=trace_context.set((self.diagnostics,tool.name,call_id) if self.diagnostics else None)
             try:
                 raw_result=await original(ctx,arguments)
-                result=self.result_processor.process(tool.name,arguments,raw_result,call_id) if self.result_processor else raw_result
+                result=self.result_processor.process(getattr(ctx,'_muse_result_tool_name',tool.name),arguments,raw_result,call_id) if self.result_processor else raw_result
                 if self.checkpoint and not (isinstance(normalize(raw_result),dict) and normalize(raw_result).get('_muse_tool_error')):
                     self.checkpoint.tool_output(call_id,result)
                 if self.diagnostics and not (isinstance(normalize(raw_result),dict) and normalize(raw_result).get('_muse_tool_error')):

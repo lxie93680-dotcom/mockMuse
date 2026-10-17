@@ -30,11 +30,21 @@ class FixtureHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
         self.model_requests.append(body)
-        tools_present = any(m.get('role') == 'tool' for m in body['messages'])
-        message = {'role': 'assistant', 'content': '模型适配测试完成'} if tools_present else {
-            'role': 'assistant', 'content': None, 'reasoning_content': 'Read the current browser page.', 'tool_calls': [{
-                'id': 'call_browser_1', 'type': 'function', 'function': {
-                    'name': 'browser_action', 'arguments': '{"action":"read"}'}}]}
+        results=[m for m in body['messages'] if m.get('role')=='tool']
+        step=len(results)
+        if step==0:
+            name='tool_search';arguments={'query':'read_browser'}
+        elif step==1:
+            found=json.loads(results[-1]['content'])['tools'][0]
+            name='tool_describe';arguments={'tool_id':found['tool_id']}
+        elif step==2:
+            info=json.loads(results[-1]['content'])
+            name='tool_call';arguments={'tool_id':info['tool_id'],'arguments':{},'fingerprint':info['fingerprint']}
+        tools_present=step>=3
+        message = {'role':'assistant','content':'模型适配测试完成'} if tools_present else {
+            'role':'assistant','content':None,'reasoning_content':'Read the current browser page.',
+            'tool_calls':[{'id':'call_'+str(step),'type':'function','function':{
+                'name':name,'arguments':json.dumps(arguments)}}]}
         payload = json.dumps({'id': 'mock-1', 'object': 'chat.completion', 'created': 1,
                               'model': body['model'], 'choices': [{'index': 0, 'message': message,
                               'finish_reason': 'stop' if tools_present else 'tool_calls'}],
@@ -74,8 +84,11 @@ class BrowserIntegration(unittest.IsolatedAsyncioTestCase):
                     logs = []
                     answer, history = await run_agent(self.browser, '读取当前网页', [], lambda *args: logs.append(args))
                 self.assertEqual(answer, '模型适配测试完成')
-                self.assertEqual(len(FixtureHandler.model_requests), 2)
+                self.assertEqual(len(FixtureHandler.model_requests), 4)
                 first = FixtureHandler.model_requests[0]
+                names={t['function']['name'] for t in first['tools']}
+                self.assertTrue({'tool_search','tool_describe','tool_call'}<=names)
+                self.assertFalse(any(n.startswith('mcp_') for n in names))
                 self.assertEqual(first['model'], model)
                 if name == 'custom':
                     self.assertNotIn('thinking', first)
@@ -91,7 +104,7 @@ class BrowserIntegration(unittest.IsolatedAsyncioTestCase):
 class APIIntegration(unittest.TestCase):
     def test_auth_exclusivity_cancellation_persistence_and_websocket(self):
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {
-            'MUSE_DESKTOP_COMMANDER':'0', 'MUSE_FILESYSTEM_MCP':'0', 'MUSE_BROWSER_BACKEND':'extension','MUSE_DATA_DIR': directory, 'MUSE_ACCESS_TOKEN': 'test-access', 'DEEPSEEK_API_KEY': '',
+            'MUSE_FILESYSTEM_MCP':'0', 'MUSE_BROWSER_BACKEND':'extension','MUSE_DATA_DIR': directory, 'MUSE_ACCESS_TOKEN': 'test-access', 'DEEPSEEK_API_KEY': '',
             'KIMI_API_KEY': '', 'MOONSHOT_API_KEY': '', 'LLM_PROVIDER': 'kimi'}):
             import muse.app as module
             module = importlib.reload(module)

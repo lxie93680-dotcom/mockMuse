@@ -14,14 +14,20 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictBool
 from typing import Literal
 
 from .compression import CheckpointStore
 from .context_history import close_pending_tools
 from .agent import run_agent
 from .loop_guard import LoopStopped
-from .desktop_commander import Commander, Filesystem
+from .staged_workspace import WorkspacePublicationError
+from .remote_mcp import RemoteMCPManager
+from .filesystem_mcp import Filesystem
+from .browser_mcp import BrowserMCP
+from .tool_registration import bootstrap_catalog
+from .tool_registry import ToolRegistry
+from .tool_providers import load_configured_providers
 from .browser import Browser
 from .human_handoff import HumanInterventionRequired
 from .debug import debug
@@ -45,12 +51,14 @@ if os.getenv('MUSE_BROWSER_BACKEND','extension') == 'playwright':
     browser = PlaywrightBrowser()
 else:
     browser = Browser()
-commander = Commander()
 filesystem = Filesystem()
+browser_mcp = None
+tool_registry = None
+remote_mcp = None
 sessions = set()
 clients = set()
 control_owner = None
-state = {'browser_backend':getattr(browser,'backend','extension'),'browser_driver':getattr(browser,'status',{}),'phase':None,'phase_detail':'','active_tools':[],'activities':[], 'status': 'idle', 'logs': [], 'messages': [], 'url': '', 'frame': None, 'frame_seq': 0, 'frame_error': '',
+state = {'browser_backend':getattr(browser,'backend','extension'),'browser_driver':getattr(browser,'status',{}),'phase':None,'phase_detail':'','active_tools':[],'browser_workspace':False,'activities':[], 'status': 'idle', 'logs': [], 'messages': [], 'url': '', 'frame': None, 'frame_seq': 0, 'frame_error': '',
          'model_ready': bool(get_provider().api_key), 'model': get_provider().model,
          'provider': get_provider().id, 'provider_name': get_provider().name, 'providers': public_providers()}
 provider_id = get_provider().id
@@ -73,7 +81,7 @@ def refresh_conversations(db):
 def save():
     with closing(database()) as db:
         db.execute('CREATE TABLE IF NOT EXISTS demo_state (id INTEGER PRIMARY KEY, content TEXT)')
-        content = {k: v for k, v in state.items() if k in ('status', 'logs', 'messages','task_id','activities','human_handoff')}
+        content = {k: v for k, v in state.items() if k in ('status', 'logs', 'messages','task_id','activities','human_handoff','browser_workspace')}
         db.execute('INSERT OR REPLACE INTO demo_state VALUES (1, ?)', (json.dumps(content, ensure_ascii=False),))
         session_id = state.setdefault('conversation_id', secrets.token_hex(16))
         title = state.setdefault('conversation_title', '历史会话' if state['messages'] else '新会话')
@@ -97,7 +105,7 @@ def load_conversation(db, session_id):
     history = close_pending_tools(old.get('history', []))
     provider_id = old.get('provider', get_provider().id)
     provider = get_provider(provider_id)
-    state.update(conversation_id=session_id, conversation_title=row[0],task_id=old.get('task_id'),human_handoff=old.get('human_handoff'),
+    state.update(browser_workspace=bool(old.get('browser_workspace',False)),browser_use_sequence=0,frame=None,url='',frame_error='',conversation_id=session_id, conversation_title=row[0],task_id=old.get('task_id'),human_handoff=old.get('human_handoff'),
                  activities=old.get('activities',[]),status=old.get('status','idle'), messages=old.get('messages',[]), logs=old.get('logs',[]),
                  provider=provider.id, provider_name=provider.name, model=provider.model,
                  model_ready=bool(provider.api_key.strip()))
@@ -170,12 +178,31 @@ def send_browser_image(picture):
     return url
 
 
+def use_browser_workspace(tool_name=''):
+    state['browser_workspace']=True
+    state['browser_use_sequence']=state.get('browser_use_sequence',0)+1
+    state['browser_connected']=browser.connected
+    publish()
+
+
+async def refresh_browser_frame():
+    if not state.get('browser_workspace') or not browser.connected:return
+    try:
+        async with browser.lock:
+            picture=await browser.screenshot()
+        broadcast_frame(base64.b64encode(picture).decode(),browser.url)
+    except Exception as error:
+        state['frame_error']='浏览器画面暂时无法加载：'+type(error).__name__
+        publish()
+
+
 def broadcast_frame(data, url):
+    if not state.get('browser_workspace') and (control_owner is None or state.get('status')=='running'):return
     state.update(frame=data, url=url, browser_connected=browser.connected, frame_error='', frame_seq=state['frame_seq'] + 1,
                  width=browser.width, height=browser.height)
-    payload = json.dumps({'type':'frame', 'frame':data, 'url':url,
+    payload = json.dumps({'type':'frame', 'frame':data, 'url':url,'browser_connected':browser.connected,
                           'status':state['status'], 'seq':state['frame_seq'],
-                          'width':browser.width, 'height':browser.height})
+                          'width':browser.width, 'height':browser.height,'conversation_id':state.get('conversation_id'),'task_id':state.get('task_id')})
     for _, queue in list(clients):
         if queue.full():
             queue.get_nowait()
@@ -185,7 +212,7 @@ def broadcast_frame(data, url):
 async def capture():
     while True:
         try:
-            if clients and (state['status'] in ('running','needs_human') or control_owner is not None):
+            if clients and ((state.get('browser_workspace',False) and state['status'] in ('running','needs_human')) or (control_owner is not None and state['status']!='running')):
                 await browser.ensure_stream(broadcast_frame)
             else:
                 await browser.stop_stream()
@@ -198,9 +225,11 @@ async def capture():
 
 @asynccontextmanager
 async def lifespan(app):
+    global browser_mcp, tool_registry, remote_mcp
     if (DATA / 'muse.db').exists():
         with closing(sqlite3.connect(DATA / 'muse.db')) as db:
-            row = db.execute('SELECT content FROM demo_state WHERE id=1').fetchone()
+            has_state=db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='demo_state'").fetchone()
+            row = db.execute('SELECT content FROM demo_state WHERE id=1').fetchone() if has_state else None
             if row:
                 old = json.loads(row[0])
                 state.update(old)
@@ -219,9 +248,39 @@ async def lifespan(app):
         async with AsyncExitStack() as stack:
             if hasattr(browser,'session'):
                 await stack.enter_async_context(browser.session(record))
-            await stack.enter_async_context(commander.session(record))
-            await stack.enter_async_context(filesystem.session(record))
-            state['mcp'] = {'desktop_commander':commander.status,'filesystem':filesystem.status}
+            browser_mcp = BrowserMCP(browser, record, send_browser_image,on_use=use_browser_workspace)
+            await stack.enter_async_context(browser_mcp.session())
+            from .host import filesystem_mcp_supported,system_name,transactional_files_supported
+            filesystem.status={'enabled':os.getenv('MUSE_FILESYSTEM_MCP','0')=='1','ready':False,'tools':[],
+                'error':'文件工具在任务暂存区内连接' if filesystem_mcp_supported() else '外部进程写入沙箱未开放，Filesystem MCP 不可用；Windows 可用内置暂存文件工具'}
+            if system_name()=='Windows' and transactional_files_supported():
+                from .windows_workspace import recover_windows_workspace
+                from .workspace import target_workspace
+                try:state['workspace_recovery']=recover_windows_workspace(target_workspace())
+                except Exception:
+                    state['workspace_recovery']={'status':'blocked','error':'Windows 文件恢复受阻，备份和暂存保留；开始文件任务前需处理冲突。'}
+                    record('Windows 文件恢复需要处理',state['workspace_recovery']['error'])
+            else:
+                state['workspace_recovery']={'status':'not_required','backend':'directory_exchange' if transactional_files_supported() else 'unavailable'}
+            state['mcp'] = {'filesystem':filesystem.status,'browser':browser_mcp.status}
+            tool_registry = ToolRegistry(DATA/'muse.db',record)
+            stack.push_async_callback(tool_registry.close)
+            state['tool_catalog_registration'] = await bootstrap_catalog(DATA/'muse.db',browser_mcp,filesystem.server,record,registry=tool_registry)
+            sources_config=os.getenv('MUSE_TOOL_SOURCES_CONFIG')
+            if sources_config:
+                try:
+                    configured=load_configured_providers(sources_config)
+                    state['configured_tool_registration']=await tool_registry.register_all(configured)
+                except Exception:
+                    state['configured_tool_registration']={'errors':['source-config']}
+                    record('工具来源配置加载失败','请检查工具来源配置和所需环境变量；原有定义保留')
+            remote_mcp = RemoteMCPManager(DATA/'remote-mcp.json', tool_registry)
+            stack.push_async_callback(remote_mcp.close)
+            try:
+                await remote_mcp.start()
+            except Exception:
+                record('远程 MCP 配置加载失败','请检查 remote-mcp.json')
+            await tool_registry.start_watching()
             publish()
             try:
                 yield
@@ -304,7 +363,8 @@ async def control_fixture():
 
 @app.get('/api/state')
 async def get_state():
-    return {**state, 'browser_backend':getattr(browser,'backend','extension'), 'browser_driver':getattr(browser,'status',{}), 'browser_connected': browser.connected,
+    from .host import capabilities
+    return {**state, 'environment':capabilities(), 'browser_backend':getattr(browser,'backend','extension'), 'browser_driver':getattr(browser,'status',{}), 'browser_connected': browser.connected,
             'width': browser.width, 'height': browser.height}
 
 
@@ -349,7 +409,7 @@ async def create_conversation():
     save()
     history = []
     state.update(conversation_id=secrets.token_hex(16), conversation_title='新会话',task_id=None,human_handoff=None,
-                 messages=[], logs=[],activities=[], status='idle', phase=None, phase_detail='', active_tools=[])
+                 messages=[], logs=[],activities=[],browser_workspace=False,browser_use_sequence=0,frame=None,url='',frame_error='', status='idle', phase=None, phase_detail='', active_tools=[])
     save()
     publish()
     return await get_state()
@@ -429,10 +489,15 @@ async def evaluation_page():
 async def observation(action: Literal['read','list_tabs'] = 'read'):
     if job and not job.done():
         raise HTTPException(409, 'Agent 正在操作，请先停止再检查页面')
+    use_browser_workspace()
     try:
-        return await browser.perform(action)
-    except (RuntimeError, ConnectionError) as error:
-        raise HTTPException(409, str(error)[:200]) from error
+        result=await browser.perform(action)
+        await refresh_browser_frame()
+        return result
+    except (RuntimeError, ConnectionError,TimeoutError) as error:
+        state['frame_error']='浏览器连接未就绪，请在 Chrome 扩展中确认连接后重试。'
+        publish()
+        raise HTTPException(409,state['frame_error']) from error
 
 
 @app.get('/api/images/{name}')
@@ -464,7 +529,140 @@ class TaskRequest(BaseModel):
 def context_store():
     store=CheckpointStore(DATA / 'muse.db', state['conversation_id'])
     store.task_id=state.get('task_id')
+    store.tool_registry=tool_registry
+    store.remote_mcp=remote_mcp
     return store
+
+
+class ToolEnabledRequest(BaseModel):
+    enabled: StrictBool
+
+
+@app.get('/tools')
+async def tools_page():
+    return FileResponse(ROOT / 'static/tools.html')
+
+
+class RemoteMCPRequest(BaseModel):
+    id: str = Field(min_length=1, max_length=64)
+    url: str = Field(min_length=1, max_length=2048)
+    token_env: str = Field(default='', max_length=128)
+
+
+@app.get('/settings/mcp')
+async def mcp_settings_page():
+    return FileResponse(ROOT / 'static/tools.html')
+
+
+@app.get('/api/mcp')
+async def list_remote_mcp():
+    if remote_mcp is None:raise HTTPException(503,'MCP 管理器未就绪')
+    return {'servers':remote_mcp.listing()}
+
+
+@app.post('/api/mcp')
+async def add_remote_mcp(body: RemoteMCPRequest):
+    if remote_mcp is None:raise HTTPException(503,'MCP 管理器未就绪')
+    try:
+        return await remote_mcp.add(body.id,body.url,body.token_env)
+    except ValueError as error:
+        raise HTTPException(400,str(error)) from None
+
+
+@app.delete('/api/mcp/{server_id}')
+async def remove_remote_mcp(server_id: str):
+    if remote_mcp is None:raise HTTPException(503,'MCP 管理器未就绪')
+    try:return await remote_mcp.remove(server_id)
+    except ValueError as error:raise HTTPException(400,str(error)) from None
+    except OSError:raise HTTPException(500,'MCP 卸载未完成，请重试') from None
+
+
+@app.post('/api/mcp/{server_id}/connect')
+async def connect_remote_mcp(server_id: str):
+    if remote_mcp is None:raise HTTPException(503,'MCP 管理器未就绪')
+    try:
+        await remote_mcp.connect(server_id)
+    except KeyError:
+        raise HTTPException(404,'MCP 未配置') from None
+    except Exception:
+        raise HTTPException(502,'工具刷新失败，请检查远程服务') from None
+    row=next((row for row in remote_mcp.listing() if row['id']==server_id),None)
+    if row is None:raise HTTPException(404,'MCP 未配置')
+    return row
+
+
+@app.get('/api/tools')
+async def get_tool_catalog(server_id: str | None = None):
+    if tool_registry is None:
+        raise HTTPException(503,'工具注册中心未就绪')
+    states=tool_registry.enabled_states()
+    rows=tool_registry.store.list_tools(server_id=server_id)
+    sources={row['source_id']:{'source_id':row['source_id'],'server_id':row['server_id'],'kind':row['source_kind'],
+             'registered':tool_registry.has_source(row['source_id'])} for row in rows}
+    for source_id,provider in tool_registry._desired_providers.items():
+        if server_id is None or getattr(provider,'server_id',None)==server_id:
+            sources.setdefault(source_id,{'source_id':source_id,'server_id':getattr(provider,'server_id',None),'kind':provider.source_kind,'registered':True})
+    items=[{'tool_id':row['tool_id'],'source_id':row['source_id'],'server_id':row['server_id'],'source_kind':row['source_kind'],
+            'name':row['name'],'description':row['description'][:600],
+            'enabled':states.get(row['tool_id'],False),'availability':row['availability'],
+            'updated_at':row['updated_at']} for row in rows]
+    return {'tools':items,'sources':sorted(sources.values(),key=lambda row:row['source_id'])}
+
+
+@app.get('/api/tools/search')
+async def search_tool_catalog(query:str,limit:int=10,server_id:str | None=None):
+    if tool_registry is None:raise HTTPException(503,'工具注册中心未就绪')
+    if not 1<=limit<=50:raise HTTPException(400,'limit须为1至50')
+    from .tool_access import ToolAccess
+    return {'tools':ToolAccess(tool_registry).search(query,limit,server_id)}
+
+
+@app.get('/api/tools/{tool_id}/detail')
+async def get_tool_catalog_detail(tool_id: str):
+    if tool_registry is None:
+        raise HTTPException(503,'工具注册中心未就绪')
+    row=tool_registry.store.get(tool_id)
+    if row is None:raise HTTPException(404,'工具未注册')
+    return {**{key:row[key] for key in ('tool_id','source_id','server_id','source_kind','tool_key','name',
+            'description','parameters','fingerprint','algorithm','availability','updated_at')},
+            'enabled':tool_registry.enabled_states().get(tool_id,False)}
+
+
+@app.get('/api/tools/enabled')
+async def get_tool_enabled_states():
+    if tool_registry is None:
+        raise HTTPException(503,'工具注册中心未就绪')
+    return {'states':tool_registry.enabled_states(), 'expires_in_seconds':tool_registry.enabled_cache.expires_in()}
+
+
+@app.post('/api/tools/{tool_id}/enabled')
+async def set_tool_enabled_state(tool_id: str, body: ToolEnabledRequest):
+    if tool_registry is None:
+        raise HTTPException(503,'工具注册中心未就绪')
+    try:
+        result=tool_registry.set_enabled(tool_id,body.enabled)
+    except KeyError:
+        raise HTTPException(404,'工具未注册') from None
+    record('工具启停状态已更新',tool_id+'；'+('启用' if body.enabled else '禁用'))
+    return result
+
+
+class ToolRefreshRequest(BaseModel):
+    source_id: str | None = Field(default=None,min_length=1,max_length=200)
+
+
+@app.post('/api/tools/refresh')
+async def refresh_tool_catalog(body: ToolRefreshRequest):
+    if tool_registry is None:
+        raise HTTPException(503,'工具注册中心未就绪')
+    if body.source_id is None:
+        return await tool_registry.refresh_all()
+    if not tool_registry.has_source(body.source_id):
+        raise HTTPException(404,'工具来源未注册')
+    try:
+        return await tool_registry.refresh(body.source_id)
+    except Exception:
+        raise HTTPException(503,'工具定义刷新失败，原有目录保留') from None
 
 
 @app.get('/api/context/checkpoint')
@@ -494,6 +692,7 @@ async def execute(prompt, demo):
     global history
     try:
         if demo:
+            use_browser_workspace()
             async with browser.lock:
                 await browser.start()
         if demo:
@@ -516,8 +715,9 @@ async def execute(prompt, demo):
             record('Agent 开始执行', state['model'])
             answer, new_history = await run_agent(browser, prompt, history[:-1], record,
                                                   get_provider(provider_id), send_browser_image,
-                                                  [manager.server for manager in (commander,filesystem) if manager.server], set_phase, checkpoint_history)
+                                                  ([filesystem.server] if filesystem.server else []) + ([browser_mcp] if browser_mcp else []) + (list(remote_mcp.servers.values()) if remote_mcp else []), set_phase, checkpoint_history)
             history = new_history
+        await refresh_browser_frame()
         set_phase('checking_result','保存执行结果与会话上下文')
         state['messages'].append({'role': 'assistant', 'text': answer})
         if demo:
@@ -545,8 +745,11 @@ async def execute(prompt, demo):
     except Exception as error:
         state['status'] = 'error'
         # Avoid leaking provider error bodies or credentials into the UI.
+        if state.get('browser_workspace') and not browser.connected:
+            state['frame_error']='浏览器连接未就绪，请在 Chrome 扩展中确认连接后重试。'
         record('执行失败', type(error).__name__)
         state['messages'].append({'role': 'assistant', 'text': (
+            str(error) if isinstance(error,WorkspacePublicationError) else
             '达到本轮操作上限，已停止。之前保存的页面修改仍保留；请查看执行记录确认进度。'
             if type(error).__name__ == 'MaxTurnsExceeded' else
             '执行失败。请检查模型配置、网络和浏览器环境。错误类型：' + type(error).__name__)})
@@ -582,11 +785,10 @@ async def start_task(body: TaskRequest):
         raise HTTPException(409, '已有任务正在执行')
     if body.demo and not browser.connected:
         raise HTTPException(409, 'Chrome 连接器尚未连接，请确认扩展已更新并启用自动连接')
-    if hasattr(browser,'status') and not browser.status['ready']:
+    if body.demo and hasattr(browser,'status') and not browser.status['ready']:
         raise HTTPException(503,browser.status['error'] or 'Playwright MCP 尚未就绪')
-    for manager in (commander, filesystem):
-        if not body.demo and manager.status['enabled'] and not manager.status['ready']:
-            raise HTTPException(503, manager.status['error'] or 'MCP 未就绪')
+    # Native tools remain usable when an optional MCP/browser backend is unavailable.
+    # Backend failures are reported when their tools are actually needed.
     provider = get_provider(provider_id)
     if not body.demo and not provider.api_key.strip():
         raise HTTPException(400, f'请在服务端 .env 中配置 {provider.key_variable}，然后重启服务')
@@ -594,6 +796,7 @@ async def start_task(body: TaskRequest):
         raise HTTPException(400, '请配置模型名称和 API 地址')
     if not body.prompt.strip():
         raise HTTPException(400, '任务不能为空')
+    state.update(browser_workspace=False,browser_use_sequence=0,frame=None,url='',frame_error='')
     state['task_id']=context_store().message_store().begin_task()
     state['status'] = 'running'
     state['human_handoff']=None
@@ -678,6 +881,7 @@ class Manual(BaseModel):
 async def manual(body: Manual):
     if job and not job.done():
         raise HTTPException(409, '请先停止 Agent 再接管')
+    use_browser_workspace()
     try:
         await browser.manual(body.action, body.x, body.y, body.text, body.x2, body.y2, body.button, body.dx)
     except Exception as error:
@@ -741,6 +945,7 @@ async def websocket(ws: WebSocket):
                         await respond({'type':'error','message':'另一页面正在接管，请先在该页面退出接管'})
                     else:
                         control_owner = ws
+                        use_browser_workspace()
                         await respond({'type':'control','active':True})
                 elif message.get('type') == 'input':
                     if control_owner is not ws or (job and not job.done() and state['status']!='needs_human'):

@@ -1,0 +1,26 @@
+{
+  "status": "completed",
+  "mode": "direct_only",
+  "provider": null,
+  "categories": 6,
+  "case_ids": [
+    "delete_visibility",
+    "disable_visibility",
+    "natural_write",
+    "natural_browser",
+    "warm_cache_update",
+    "schema_reload",
+    "restart_reload"
+  ],
+  "product_state_modified": false,
+  "fixture_browser": "synthetic adapter over real in-memory MCP",
+  "catalog_sha256": "e839c8e83165c33d85a2cd9db688ce65dae4124e6671b93bb43265ad8c5f97b8",
+  "source_sha256": {
+    "evals/tool_lifecycle/run.py": "146ac136337d9a3ee44cc0f7b88c930ca6a4887fa4e55ff39b9181218cd9b9fe",
+    "evals/tool_lifecycle/fixtures.py": "da0d8408bb0a399fc7f927c009a4527b344eadd0aec254cd7827d739206e56e5",
+    "muse/tool_access.py": "a6f3a2bbbc4af4e52fdb0af046580695cc02dc21920b6b3067d9c435c8e88849",
+    "muse/tool_registry.py": "c28426870dfd6f7f8ff4b819023e092c90224183078219791c5002e181adc5f0",
+    "muse/tool_store.py": "a590bc1343a0523cb1715ed961cf37217f5a9b33803b47c3994ab2ecd7d2901e",
+    "muse/tool_enable_cache.py": "93be7ea7b00761b2f23a631e190dd385c8d0666c393a68d8738d3048cf3afb02"
+  }
+}

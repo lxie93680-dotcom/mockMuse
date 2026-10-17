@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "status": "54项系统回归检查；含模型辅助场景，历史结果不作搜索质量分数",
+  "categories": 13,
+  "oracle": "Actual search outputs, schemas, fingerprints, cached permission state, fixture effects, persisted state across real process restart; model prose alone never determines success.",
+  "isolation": "Each case has its own temporary database, source, files and MCP session. No production tool definitions, browser sessions or enable flags are changed.",
+  "cleanup": "Restore source functions and enable flags in finally, reconcile and verify snapshot; stop child services and remove temporary directories. Cleanup failure fails the case.",
+  "browser_scope": "Natural-language browser case uses real MCP transport with a synthetic browser adapter. It measures discovery/selection, not live Chrome connectivity.",
+  "live": "Explicit --live uses configured model credentials in memory. No credentials, authorization headers or full provider configuration are written to artifacts.",
+  "natural_language_file_scoring": "The discovery/trigger gate requires an actual Filesystem write and a real file containing requested text. Byte-exact content is a separate quality metric; deviations remain visible and are not reported as exact-content passes.",
+  "cases": 54,
+  "category_titles": {
+    "1": "删除与重现",
+    "2": "启停过滤",
+    "3": "自然语言选择",
+    "4": "缓存生命周期",
+    "5": "定义/通知/取消",
+    "6": "进程重启",
+    "7": "字面检索边界",
+    "8": "来源隔离与替换",
+    "9": "指纹稳定性",
+    "10": "故障恢复",
+    "11": "子Agent权限",
+    "12": "存储和索引",
+    "13": "参数验证"
+  },
+  "suite_type": "test",
+  "title": "工具生命周期回归"
+}

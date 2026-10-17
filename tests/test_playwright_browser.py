@@ -57,3 +57,39 @@ class PlaywrightAdapter(unittest.IsolatedAsyncioTestCase):
         b=PlaywrightBrowser();b.extension_mode=True;b.server=object()
         self.assertFalse(b.connected)
         b.extension_attached=True;self.assertTrue(b.connected)
+
+    async def test_extension_navigation_waits_for_readonly_handshake(self):
+        from types import SimpleNamespace
+        b=PlaywrightBrowser();b.extension_mode=True
+        result=SimpleNamespace(content=[SimpleNamespace(text='ok')],is_error=False)
+        b.server=SimpleNamespace(call_tool=AsyncMock(return_value=result))
+        await b.tool('browser_navigate',{'url':'http://127.0.0.1:8000/control-test'})
+        self.assertEqual([c.args[0] for c in b.server.call_tool.call_args_list],['browser_tabs','browser_navigate'])
+        self.assertTrue(b.connected)
+        await b.tool('browser_click',{'target':'e1'})
+        self.assertEqual(b.server.call_tool.call_args.args[0],'browser_click')
+        self.assertEqual(b.server.call_tool.await_count,3)
+
+    async def test_extension_timeout_does_not_enqueue_requested_navigation(self):
+        from types import SimpleNamespace
+        from mcp.shared.exceptions import MCPError
+        from mcp.types import REQUEST_TIMEOUT
+        b=PlaywrightBrowser();b.extension_mode=True
+        b.server=SimpleNamespace(call_tool=AsyncMock(side_effect=MCPError(REQUEST_TIMEOUT,'timeout')))
+        with self.assertRaises(MCPError):
+            await b.tool('browser_navigate',{'url':'http://127.0.0.1:8000/control-test'})
+        self.assertEqual([c.args[0] for c in b.server.call_tool.call_args_list],['browser_tabs'])
+        self.assertFalse(b.connected)
+        self.assertEqual(b.status['connection_state'],'waiting_for_extension')
+
+    async def test_extension_cancel_does_not_enqueue_requested_input(self):
+        import asyncio
+        from types import SimpleNamespace
+        b=PlaywrightBrowser();b.extension_mode=True;entered=asyncio.Event()
+        async def wait(*args):entered.set();await asyncio.Event().wait()
+        b.server=SimpleNamespace(call_tool=AsyncMock(side_effect=wait))
+        task=asyncio.create_task(b.tool('browser_type',{'target':'e1','text':'fixture'}))
+        await entered.wait();task.cancel()
+        with self.assertRaises(asyncio.CancelledError):await task
+        self.assertEqual([c.args[0] for c in b.server.call_tool.call_args_list],['browser_tabs'])
+        self.assertFalse(b.connected)

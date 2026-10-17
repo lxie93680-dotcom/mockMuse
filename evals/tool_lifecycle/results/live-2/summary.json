@@ -1,0 +1,16 @@
+{
+  "mode": "live_model_and_direct",
+  "total": 7,
+  "counts": {
+    "pass": 5,
+    "fail": 1,
+    "error": 1,
+    "invalid": 0
+  },
+  "model_requests": 34,
+  "dialogue_cases": 6,
+  "all_temporary_namespaces_removed": true,
+  "natural_language_quality": "measured",
+  "browser_fixture": "synthetic, not a real Chrome end-to-end measurement",
+  "product_state_modified": false
+}

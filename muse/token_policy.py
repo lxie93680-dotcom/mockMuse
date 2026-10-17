@@ -8,7 +8,7 @@ from pathlib import Path
 
 def model_policy(provider, model):
     path=Path(os.getenv('MUSE_MODEL_CONTEXT_CONFIG',str(Path(__file__).resolve().parents[1]/'config/model_contexts.json')))
-    configs=json.loads(path.read_text())
+    configs=json.loads(path.read_text(encoding='utf-8'))
     policy=configs.get(provider+':'+model,{})
     result={'context_window':0,'compression_threshold':.5,'keep_recent_tokens':20000,
             'fallback_utf8_bytes_per_token':2,'image_token_budget':4096,**policy}

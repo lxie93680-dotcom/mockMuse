@@ -1,8 +1,8 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Muse · 评测中心</title><link rel="stylesheet" href="/static/evals.css"></head><body>
 <header><a href="/">m <span>Muse</span></a><nav>评测中心</nav><button id="refresh">刷新数据</button><small id="updated"></small></header>
-<main><section class="intro"><span>EVALUATIONS</span><h1>让每次改动都有证据</h1><p>评测集、历次运行与失败链路。直接读取本地评测产物，未执行的设计与离线验证单独展示。</p></section>
-<div id="notice" role="alert"></div><section id="stats" class="stats"></section><section><div class="section-title"><h2>评测集</h2><span>选择查看用例及对应运行</span></div><div id="suites" class="suites"></div></section>
-<section class="results"><div class="section-title"><h2>运行记录</h2><span id="runCount"></span><button id="allSuites">全部评测集</button></div><div class="layout"><aside id="runs"></aside><article id="result"><div class="empty">选择一次运行查看数据</div></article></div></section></main>
+<main><section class="intro"><span>EVALUATIONS</span><h1>让每次改动都有证据</h1><p>能力评测看搜索质量，系统测试看机制正确性。两类用例与运行结果分别展示，不合并通过率。</p></section>
+<div class="filters" role="group" aria-label="评测与测试分类"><button id="evaluationTab" aria-pressed="true">能力评测</button><button id="testTab" aria-pressed="false">系统测试</button></div><p id="sectionNote"></p><div id="notice" role="alert"></div><section id="stats" class="stats"></section><section><div class="section-title"><h2 id="suiteHeading">评测集</h2><span>选择查看用例及对应运行</span></div><div id="suites" class="suites"></div></section>
+<section class="results"><div class="section-title"><h2>运行记录</h2><span id="runCount"></span><button id="allSuites">当前分类全部集合</button></div><div class="layout"><aside id="runs"></aside><article id="result"><div class="empty">选择一次运行查看数据</div></article></div></section></main>
 <dialog id="detail"><div class="dialog-head"><h2 id="detailTitle">Case详情</h2><button id="closeDetail">关闭</button></div><div id="detailBody"></div></dialog>
 <dialog id="login"><form id="loginForm"><h2>连接评测中心</h2><p>请输入 Muse 访问口令。</p><input id="token" type="password" autocomplete="current-password" required aria-label="访问口令"><button>连接</button><p id="loginError" role="alert"></p></form></dialog>
-<script src="/static/evals.js"></script></body></html>
+<script src="/static/evals.js"></script><script src="/static/eval-review.js"></script><script src="/static/eval-annotations.js"></script></body></html>

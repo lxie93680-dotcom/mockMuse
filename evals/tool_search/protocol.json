@@ -1,0 +1,16 @@
+{
+  "suite_type": "evaluation",
+  "title": "工具搜索效果",
+  "status": "检索器离线基线；固定28工具、40条人工标注查询；不代表Agent端到端",
+  "metrics": [
+    "Hit@1",
+    "Hit@3",
+    "Hit@5",
+    "Recall@5",
+    "MRR@5",
+    "Precision@5",
+    "无匹配正确拒绝率"
+  ],
+  "scope": "直接将原始query交给当前ToolAccess.search；不改写查询，不调用模型，不执行业务工具。相关性为人工二元标注，含8个合成干扰工具；固定快照不跟随生产变更。非总体线上准确率。",
+  "cases": 40
+}

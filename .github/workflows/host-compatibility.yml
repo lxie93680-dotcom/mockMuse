@@ -1,0 +1,31 @@
+name: Host compatibility and Windows writeback
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+jobs:
+  portable:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: '1'
+      MUSE_BROWSER_BACKEND: extension
+      MUSE_FILESYSTEM_MCP: '0'
+      MUSE_RUN_BROWSER_SMOKE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: uv sync --locked
+      - run: npm --prefix vendor/playwright ci
+      - run: node vendor/playwright/node_modules/playwright/cli.js install --with-deps chromium
+      - run: node --check vendor/playwright/diagnostic-hook.cjs
+      - run: node --check vendor/playwright/launch.mjs
+      - run: uv run python -m unittest tests.test_host_compatibility tests.test_windows_workspace tests.test_muse_cli tests.test_builtin_skills tests.test_remote_mcp tests.test_remote_mcp_reconnect tests.test_tool_store tests.test_tool_enable_cache tests.test_tool_access tests.test_playwright_browser -v

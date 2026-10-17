@@ -1,0 +1,17 @@
+{
+  "suite_type": "evaluation",
+  "status": "completed",
+  "mode": "raw_query_retrieval",
+  "model_requests": 0,
+  "catalog_tools": 28,
+  "k": 5,
+  "source_sha256": {
+    "evals/tool_search/cases.jsonl": "c5c0d9aeb184a7c29ade4f99da0c00e0189423833500c615434fcf73ba2182e3",
+    "evals/tool_search/catalog.json": "154d9bcbe5f59b271004d2c40d846950d2faf94b07450768845d6f3d0de34c77",
+    "evals/tool_search/protocol.json": "910793e975360bb0bc408695d2199a8a6b5d73d074ef41671da0b8a38dfa16f0",
+    "evals/tool_search/run.py": "abef1c31568a463af80cbb8b17b81e8b541d16cd2435b813d183fe28e7be2592",
+    "muse/tool_access.py": "a6f3a2bbbc4af4e52fdb0af046580695cc02dc21920b6b3067d9c435c8e88849",
+    "muse/tool_store.py": "a590bc1343a0523cb1715ed961cf37217f5a9b33803b47c3994ab2ecd7d2901e",
+    "muse/tool_enable_cache.py": "93be7ea7b00761b2f23a631e190dd385c8d0666c393a68d8738d3048cf3afb02"
+  }
+}

@@ -11,7 +11,7 @@ globalThis.__museTrace = (stage,extra={},ctx=als.getStore()) => {
 };
 const original=Module.prototype._compile;
 Module.prototype._compile=function(source,filename){
- if(filename.endsWith('/playwright-core/lib/coreBundle.js')){
+ if(filename.replaceAll('\\','/').endsWith('/playwright-core/lib/coreBundle.js')){
   const edits=[
    ['      async callTool(name, rawArguments = {}, signal) {', `      async callTool(name, rawArguments = {}, signal) {
         const ctx={trace_id:rawArguments._meta?.muse_trace_id,tool:name,background:!!rawArguments._meta?.muse_background};

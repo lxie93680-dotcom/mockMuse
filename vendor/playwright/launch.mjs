@@ -2,7 +2,7 @@ import {chromium} from './node_modules/playwright/index.mjs';
 import fs from 'node:fs/promises';
 const [profile,extension,executable,initial,headless]=process.argv.slice(2);
 const context=await chromium.launchPersistentContext(profile,{executablePath:executable,channel:'chromium',headless:headless==='1',viewport:{width:1280,height:800},args:['--remote-debugging-port=0',`--disable-extensions-except=${extension}`,`--load-extension=${extension}`]});
-const portFile=(await fs.readFile(profile+'/DevToolsActivePort','utf8')).trim().split('\n');
+const portFile=(await fs.readFile(profile+'/DevToolsActivePort','utf8')).trim().split(/\r?\n/);
 console.log(JSON.stringify({endpoint:`ws://127.0.0.1:${portFile[0]}${portFile[1]}`,version:context.browser().version()}));
 let saved=[];try{saved=JSON.parse(await fs.readFile(profile+'/muse-tabs.json','utf8'));}catch{}
 const urls=saved.filter(u=>/^https?:\/\//.test(u));

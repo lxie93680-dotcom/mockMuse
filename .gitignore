@@ -14,3 +14,7 @@ node_modules/
 !.env.example
 /references/openclaw/
 /references/hermes-agent/
+
+# Local human annotation history
+/evals/tool_search/annotations.sqlite3*
+/evals/run-reviews.sqlite3*

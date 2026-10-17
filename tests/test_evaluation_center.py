@@ -31,3 +31,13 @@ class EvaluationCenter(unittest.TestCase):
     def test_validation_not_counted_as_model_runs(self):
         (self.run/'results.json').unlink();(self.run/'validation.json').write_text('{"status":"offline_passed","model_calls":0}')
         r=ec.catalog()['runs'][0];self.assertEqual(r['total'],0);self.assertEqual(r['kind'],'验证/基础设施记录')
+    def test_suite_classification_inherited_by_historical_runs(self):
+        (self.root/'suite'/'protocol.json').write_text(json.dumps({'suite_type':'test','title':'系统回归'}))
+        c=ec.catalog();self.assertEqual(c['suites'][0]['suite_type'],'test');self.assertEqual(c['suites'][0]['title'],'系统回归')
+        self.assertEqual(c['runs'][0]['suite_type'],'test')
+        (self.root/'suite'/'protocol.json').write_text(json.dumps({'suite_type':'evaluation'}))
+        self.assertEqual(ec.catalog()['runs'][0]['suite_type'],'evaluation')
+    def test_legacy_classification_defaults(self):
+        self.assertEqual(ec.suite_type('tool_lifecycle'),'test')
+        self.assertEqual(ec.suite_type('browser_grounding'),'evaluation')
+        self.assertEqual(ec.suite_type('unknown',{'suite_type':'invalid'}),'evaluation')

@@ -17,3 +17,5 @@
 #debugPanel.minimized{height:auto;width:min(360px,calc(100vw - 32px))}#debugPanel.minimized .debug-hint,#debugPanel.minimized #debugCalls,#debugPanel.minimized #debugClear{display:none}#debugPanel.minimized .debug-head{border-bottom:0}
 
 .debug-call.debug-error{border:1px solid #dc4747;background:#fff3f3}.debug-call.debug-error h3,.debug-call.debug-error pre{color:#b42318}
+
+main.chat-only{grid-template-columns:minmax(0,1fr)}main.chat-only .chat{width:100%;max-width:1000px;justify-self:center;border-right:0}#inlineActivity{margin:8px 0;color:var(--muted);font-size:12px}#inlineActivity>summary{cursor:pointer;padding:8px 0}#inlineActivity .activity{min-height:80px;max-height:200px;margin:5px 0 10px}#browserToggle{font-size:11px;padding:6px 10px}.chat-only .welcome{padding-top:55px}@media(max-width:850px){main.chat-only .chat{min-height:0}#browserConnection{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}

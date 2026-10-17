@@ -1,0 +1,109 @@
+{
+  "metrics": {
+    "hit_at_1": 0.42857142857142855,
+    "hit_at_3": 0.5142857142857142,
+    "hit_at_5": 0.5142857142857142,
+    "recall_at_5": 0.4895238095238095,
+    "precision_at_5": 0.44571428571428573,
+    "mrr_at_5": 0.4666666666666666,
+    "positive_queries": 35,
+    "negative_queries": 5,
+    "no_match_correct_rate": 1.0
+  },
+  "by_category": {
+    "ambiguous_distractors": {
+      "hit_at_1": 0.6,
+      "hit_at_3": 0.6,
+      "hit_at_5": 0.6,
+      "recall_at_5": 0.6,
+      "precision_at_5": 0.5,
+      "mrr_at_5": 0.6,
+      "positive_queries": 5,
+      "negative_queries": 0,
+      "no_match_correct_rate": null
+    },
+    "cross_language": {
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "precision_at_5": 0.0,
+      "mrr_at_5": 0.0,
+      "positive_queries": 5,
+      "negative_queries": 0,
+      "no_match_correct_rate": null
+    },
+    "exact_name": {
+      "hit_at_1": 0.8,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "recall_at_5": 1.0,
+      "precision_at_5": 0.8,
+      "mrr_at_5": 0.9,
+      "positive_queries": 5,
+      "negative_queries": 0,
+      "no_match_correct_rate": null
+    },
+    "keywords": {
+      "hit_at_1": 0.8,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "recall_at_5": 0.9333333333333333,
+      "precision_at_5": 0.9,
+      "mrr_at_5": 0.8666666666666666,
+      "positive_queries": 5,
+      "negative_queries": 0,
+      "no_match_correct_rate": null
+    },
+    "multi_relevant": {
+      "hit_at_1": 0.8,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "recall_at_5": 0.8933333333333333,
+      "precision_at_5": 0.9199999999999999,
+      "mrr_at_5": 0.9,
+      "positive_queries": 5,
+      "negative_queries": 0,
+      "no_match_correct_rate": null
+    },
+    "natural_language": {
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "precision_at_5": 0.0,
+      "mrr_at_5": 0.0,
+      "positive_queries": 5,
+      "negative_queries": 0,
+      "no_match_correct_rate": null
+    },
+    "no_match": {
+      "hit_at_1": null,
+      "hit_at_3": null,
+      "hit_at_5": null,
+      "recall_at_5": null,
+      "precision_at_5": null,
+      "mrr_at_5": null,
+      "positive_queries": 0,
+      "negative_queries": 5,
+      "no_match_correct_rate": 1.0
+    },
+    "paraphrase": {
+      "hit_at_1": 0.0,
+      "hit_at_3": 0.0,
+      "hit_at_5": 0.0,
+      "recall_at_5": 0.0,
+      "precision_at_5": 0.0,
+      "mrr_at_5": 0.0,
+      "positive_queries": 5,
+      "negative_queries": 0,
+      "no_match_correct_rate": null
+    }
+  },
+  "total": 40,
+  "scoring": "pass=相关查询Top5至少命中一个标注工具；无匹配查询返回空。主要比较排名/召回指标，不与系统测试通过率合并。",
+  "precision_denominator": "实际返回候选数，最多5；不是固定除以5",
+  "scope": "固定快照及人工二元标注；直接原始查询，无模型改写；非Agent端到端，浏览器不执行。",
+  "temporary_namespace_removed": true,
+  "product_state_modified": false
+}

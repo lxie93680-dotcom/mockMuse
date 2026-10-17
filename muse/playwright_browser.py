@@ -7,6 +7,7 @@ from .browser import Browser
 from .tool_diagnostics import safe_text
 from .browser_diagnostics import traced_call,traced_lock,background_trace
 from .human_handoff import HumanInterventionRequired,human_reason
+from .host import child_environment, node_executable, browser_executable
 
 ROOT=Path(__file__).resolve().parents[1]
 ENTRY=ROOT/'vendor/playwright/node_modules/@playwright/mcp/cli.js'
@@ -34,8 +35,8 @@ class PlaywrightBrowser(Browser):
 
     @asynccontextmanager
     async def session(self,record):
-        node=shutil.which('node')
-        child_env={k:v for k,v in os.environ.items() if k in ('HOME','PATH','TMPDIR','LANG','LC_ALL','USER','LOGNAME','DISPLAY')}
+        node=node_executable()
+        child_env=child_environment()
         data=Path(os.getenv('MUSE_DATA_DIR',str(ROOT/'data'))).resolve()
         output=data/'playwright-output';output.mkdir(parents=True,exist_ok=True)
         server=None;trace_reader=None
@@ -46,14 +47,11 @@ class PlaywrightBrowser(Browser):
             if not node or not ENTRY.is_file():raise RuntimeError('缺少 Playwright MCP 依赖，请运行 npm --prefix vendor/playwright ci')
             endpoint=os.getenv('MUSE_PLAYWRIGHT_CDP_ENDPOINT','')
             if not endpoint and not self.extension_mode:
-                executable=os.getenv('MUSE_PLAYWRIGHT_EXECUTABLE','')
-                if not executable:
-                    matches=list((Path.home()/'Library/Caches/ms-playwright').glob('chromium-*/*/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'))
-                    executable=str(max(matches,key=lambda p:int(re.search(r'chromium-(\d+)',str(p))[1]))) if matches else ''
-                if not Path(executable).is_file():raise RuntimeError('缺少 Chrome for Testing；请设置 MUSE_PLAYWRIGHT_EXECUTABLE')
+                executable=browser_executable()
+                if not executable:raise RuntimeError('缺少 Playwright Chromium；请安装浏览器或设置 MUSE_PLAYWRIGHT_EXECUTABLE')
                 extension=data/'playwright-extension'
                 shutil.copytree(ROOT/'extension',extension,dirs_exist_ok=True)
-                worker=extension/'worker.js';worker.write_text(worker.read_text().replace('http://127.0.0.1:8000',f'http://127.0.0.1:{os.getenv("MUSE_PORT","8000")}'))
+                worker=extension/'worker.js';worker.write_text(worker.read_text(encoding='utf-8').replace('http://127.0.0.1:8000',f'http://127.0.0.1:{os.getenv("MUSE_PORT","8000")}'),encoding='utf-8')
                 profile=data/'playwright-profile'
                 self.process=await asyncio.create_subprocess_exec(node,str(ROOT/'vendor/playwright/launch.mjs'),str(profile),str(extension),executable,f'http://127.0.0.1:{os.getenv("MUSE_PORT","8000")}/control-test',os.getenv('MUSE_PLAYWRIGHT_HEADLESS','0'),stdin=asyncio.subprocess.PIPE,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.DEVNULL,env=child_env)
                 line=await asyncio.wait_for(self.process.stdout.readline(),30)
@@ -84,7 +82,7 @@ class PlaywrightBrowser(Browser):
 
     async def read_internal_trace(self,path):
         from .debug import debug
-        with path.open() as stream:
+        with path.open(encoding='utf-8') as stream:
             while True:
                 for line in stream:
                     try:event=json.loads(line)
@@ -97,12 +95,28 @@ class PlaywrightBrowser(Browser):
                     else:debug.event('mcp_internal',event,error=bool(event.get('error')))
                 await asyncio.sleep(.25)
 
+    async def ensure_extension_connection(self):
+        if not self.extension_mode or self.extension_attached:return
+        # Establish consent with a read-only request. A cancelled/timed-out
+        # handshake must never leave a pending navigation or input in the relay.
+        self.status['connection_state']='waiting_for_extension'
+        result=await traced_call(self,'browser_tabs',{'action':'list'})
+        text='\n'.join(c.text for c in result.content if hasattr(c,'text'))
+        if getattr(result,'is_error',getattr(result,'isError',False)):
+            raise RuntimeError(text)
+        self.extension_attached=True
+        self.status['connection_state']='connected'
+
     async def tool(self,name,args):
         await self.start()
+        if name!='browser_tabs' or args.get('action')!='list':
+            await self.ensure_extension_connection()
         result=await traced_call(self,name,args)
         text='\n'.join(c.text for c in result.content if hasattr(c,'text'))
         if getattr(result,'is_error',getattr(result,'isError',False)):raise RuntimeError(text)
-        if self.extension_mode:self.extension_attached=True
+        if self.extension_mode:
+            self.extension_attached=True
+            self.status['connection_state']='connected'
         return text
 
     async def snapshot(self,ref=None):
@@ -187,6 +201,7 @@ class PlaywrightBrowser(Browser):
         import base64
         import io
         from PIL import Image
+        await self.ensure_extension_connection()
         result=await traced_call(self,'browser_take_screenshot',{'type':'jpeg','scale':'css','filename':'muse-live.jpg'})
         if getattr(result,'is_error',False):raise RuntimeError('Playwright截图失败')
         blocks=[c for c in result.content if getattr(c,'type',None)=='image']

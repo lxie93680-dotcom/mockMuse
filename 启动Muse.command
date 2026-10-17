@@ -10,7 +10,8 @@ fail() {
 }
 
 if curl --silent --max-time 2 "$URL" | /usr/bin/grep -q 'Muse'; then
-  echo 'Muse 已在运行，正在打开工作台。'
+  echo 'Muse 已在运行，本次只打开工作台，不会重启服务。'
+  echo '更新代码后请先在原服务终端按 Control+C 停止，再启动；旧服务仍占用 8000 时不会加载新代码。'
   open "$URL"
   exit 0
 fi

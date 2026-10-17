@@ -25,7 +25,7 @@ class Handoff(unittest.IsolatedAsyncioTestCase):
 
 class HandoffState(unittest.TestCase):
     def test_wait_takeover_and_resume_only_after_verification(self):
-        with tempfile.TemporaryDirectory() as directory,patch.dict(os.environ,{'DEEPSEEK_API_KEY':'test-only','LLM_PROVIDER':'deepseek','MUSE_DATA_DIR':directory,'MUSE_BROWSER_BACKEND':'extension','MUSE_DESKTOP_COMMANDER':'0','MUSE_FILESYSTEM_MCP':'0'}):
+        with tempfile.TemporaryDirectory() as directory,patch.dict(os.environ,{'DEEPSEEK_API_KEY':'test-only','LLM_PROVIDER':'deepseek','MUSE_DATA_DIR':directory,'MUSE_BROWSER_BACKEND':'extension','MUSE_FILESYSTEM_MCP':'0'}):
             import muse.app as app
             app=importlib.reload(app)
             with TestClient(app.app,base_url='http://127.0.0.1:8000',client=('127.0.0.1',1234)) as client:

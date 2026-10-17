@@ -1,0 +1,16 @@
+{
+  "mode": "direct_only",
+  "total": 7,
+  "counts": {
+    "pass": 5,
+    "fail": 0,
+    "error": 0,
+    "invalid": 2
+  },
+  "model_requests": 0,
+  "dialogue_cases": 0,
+  "all_temporary_namespaces_removed": true,
+  "natural_language_quality": "not_run",
+  "browser_fixture": "synthetic, not a real Chrome end-to-end measurement",
+  "product_state_modified": false
+}
