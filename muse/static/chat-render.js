@@ -19,7 +19,7 @@ function markdown(text){
     const heading=/^(#{1,6})\s+(.+)$/.exec(line);if(heading){const h=node('h'+Math.min(heading[1].length+1,6));inline(h,heading[2]);host.append(h);i++;continue;}
     if(/^\s*([-*_])(?:\s*\1){2,}\s*$/.test(line)){host.append(node('hr'));i++;continue;}
     if(/^\s*>/.test(line)){const quote=node('blockquote');while(i<lines.length&&/^\s*>/.test(lines[i])){const p=node('p');inline(p,lines[i++].replace(/^\s*>\s?/,''));quote.append(p);}host.append(quote);continue;}
-    const list=/^\s*(?:([-+*])|(\d+)\.)\s+/.exec(line);if(list){const ordered=!!list[2],ul=node(ordered?'ol':'ul');if(ordered)ul.start=Number(list[2]);while(i<lines.length){const item=/^\s*(?:([-+*])|(\d+)\.)\s+(.+)$/.exec(lines[i]);if(!item||!!item[2]!==ordered)break;const li=node('li');inline(li,item[3]);ul.append(li);i++;}host.append(ul);continue;}
+    const list=/^\s*(?:([-+*])|(\d+)\.)\s+(.+)$/.exec(line);if(list){const ordered=!!list[2],ul=node(ordered?'ol':'ul');if(ordered)ul.start=Number(list[2]);while(i<lines.length){const item=/^\s*(?:([-+*])|(\d+)\.)\s+(.+)$/.exec(lines[i]);if(!item||!!item[2]!==ordered)break;const li=node('li');inline(li,item[3]);ul.append(li);i++;}host.append(ul);continue;}
     const p=node('p');inline(p,line);i++;while(i<lines.length&&lines[i].trim()&&!/^\s*(?:```|#{1,6}\s|>|[-+*]\s|\d+\.\s)/.test(lines[i])&&!(i+1<lines.length&&lines[i].includes('|')&&/---/.test(lines[i+1]))){p.append(node('br'));inline(p,lines[i++]);}host.append(p);
   }return host;
 }
